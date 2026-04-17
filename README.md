@@ -13,16 +13,15 @@
 ניהול לוגיסטיקה – ציוד, הסעות, ספקים ומיקומים  
 
 ---
-
 ## 📑 תוכן עניינים
 1. [מבוא](#-מבוא)  
 2. [מסכי המערכת (AI Studio)](#️-מסכי-המערכת-ai-studio)  
 3. [תרשים ERD](#-תרשים-erd)  
-4. [תרשים DSD](#️-תרשים-dsd)  
-5. [קישור למערכת](#-קישור-למערכת)  
-
----
-
+4. [תרשים DSD](#️-תרשים-dsd)
+5.  
+6. [יצירת נתונים (CSV & Python)](#-יצירת-נתונים-csv--python)  
+7. [קישור למערכת](#-קישור-למערכת)
+8. 
 ## 🧠 מבוא
 
 המערכת מיועדת לניהול טיולים קבוצתיים תוך דגש על תת־מערכת הלוגיסטיקה.
@@ -171,12 +170,40 @@
 </p>
 
 ---
-##CSV
-<img width="1920" height="1080" alt="image (4)" src="https://github.com/user-attachments/assets/d0c5ec20-d77e-408f-9c06-7b34060539f7" />
-First tool: using mockaro to create csv file
-<img width="1920" height="1080" alt="image (5)" src="https://github.com/user-attachments/assets/0d9447f8-1fde-43a5-971e-425a026c15c1" />
-python
-<img width="512" height="140" alt="image (27)" src="https://github.com/user-attachments/assets/792864ac-a6d7-41a7-bd45-0b0b85a2e8a5" />
+---
+
+## 📊 יצירת נתונים (CSV & Python)
+
+לצורך בדיקות ואכלוס המערכת, יצרנו נתונים באמצעות מספר שיטות:
+
+### 🔹 1. שימוש באתר Mockaroo
+נוצר קובץ CSV המכיל נתונים רנדומליים עבור ישויות שונות במערכת (כגון משתתפים, ספקים וציוד).
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d0c5ec20-d77e-408f-9c06-7b34060539f7" width="700">
+</p>
+
+---
+
+### 🔹 2. שימוש בקובץ CSV
+הנתונים שנוצרו נטענו לבסיס הנתונים באמצעות קובץ CSV.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/0d9447f8-1fde-43a5-971e-425a026c15c1" width="700">
+</p>
+
+---
+
+### 🔹 3. שימוש בסקריפט Python
+נכתב סקריפט Python ליצירת נתונים באופן אוטומטי והפקת נתונים בפורמט מתאים להכנסה למערכת.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/792864ac-a6d7-41a7-bd45-0b0b85a2e8a5" width="400">
+</p>
+
+---
+
+✔️ באמצעות שלוש שיטות אלו, הצלחנו לאכלס את המערכת בנתונים מגוונים וריאליסטיים.
 
 
 
