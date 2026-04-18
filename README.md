@@ -236,6 +236,10 @@
 ---
 
 ## גיבוי
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/94733773-2d83-43d1-b574-616753a11b53" width="600">
+</p>
+
 
 💾 **קישור לתיקיית הגיבויים:**  
 [צפייה בתיקיית Backup](./DBProject/8578_3938/שלב%20א/Backup/)
