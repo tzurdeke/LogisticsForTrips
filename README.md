@@ -207,7 +207,7 @@
 נוצר קובץ CSV המכיל נתונים רנדומליים עבור ישויות שונות במערכת (כגון משתתפים, ספקים וציוד).
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d0c5ec20-d77e-408f-9c06-7b34060539f7" width="700">
+  <img src="https://github.com/user-attachments/assets/0d9447f8-1fde-43a5-971e-425a026c15c1" width="700">
 </p>
 
 ---
@@ -215,10 +215,10 @@
 ### 🔹 2. שימוש בקובץ CSV
 הנתונים שנוצרו נטענו לבסיס הנתונים באמצעות קובץ CSV.
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/0d9447f8-1fde-43a5-971e-425a026c15c1" width="700">
-</p>
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d0c5ec20-d77e-408f-9c06-7b34060539f7" width="700">
+</p>
 ---
 
 ### 🔹 3. שימוש בסקריפט Python
