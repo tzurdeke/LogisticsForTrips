@@ -1,23 +1,23 @@
 -- ==============================================
--- PART 2: CONSTRAINTS (אילוצים)
+-- PART 2: CONSTRAINTS
 -- ==============================================
 
--- אילוץ 1: אורך הכתובת של מיקום חייב להיות לפחות 5 תווים (כדי למנוע הזנת זבל)
+-- Constraint 1: Address length must be at least 5 characters to prevent junk data.
 ALTER TABLE LOCATION ADD CONSTRAINT chk_address_length CHECK (LENGTH(Address) >= 5);
 
--- (צילום מסך לשגיאה 1) ניסיון להכניס מיקום עם כתובת באורך 2 תווים:
+-- Test 1: Attempt to insert a location with a 2-character address.
 INSERT INTO LOCATION (LocationID, LocationName, Region, Address, Description) VALUES (999, 'Test Loc', 'North', 'A1', 'Short address');
 
 
--- אילוץ 2: שם הציוד חייב להיות ייחודי במערכת
+-- Constraint 2: Equipment ItemName must be unique in the system.
 ALTER TABLE EQUIPMENT ADD CONSTRAINT unq_itemname UNIQUE (ItemName);
 
--- (צילום מסך לשגיאה 2) ניסיון להכניס ציוד עם שם שכבר קיים (Gear 1):
-INSERT INTO EQUIPMENT (EquipmentID, ItemName, TotalInStock, SupplierID) VALUES (999, 'Gear 1', 10, 39);
+-- Test 2: Attempt to insert equipment with an existing name (PyGear 1).
+INSERT INTO EQUIPMENT (EquipmentID, ItemName, TotalInStock, SupplierID) VALUES (999, 'PyGear 1', 10, 39);
 
 
--- אילוץ 3: אימייל של משתתף חייב להכיל את התו @ 
+-- Constraint 3: Participant Email must contain the '@' character.
 ALTER TABLE PARTICIPANT ADD CONSTRAINT chk_email_format CHECK (Email LIKE '%@%');
 
--- (צילום מסך לשגיאה 3) ניסיון להכניס משתתף עם אימייל לא חוקי:
+-- Test 3: Attempt to insert a participant with an invalid email.
 INSERT INTO PARTICIPANT (ParticipantID, FirstName, LastName, Phone, Email, birthday) VALUES (999, 'Test', 'User', '0501234567', 'bademail.com', '2000-01-01');

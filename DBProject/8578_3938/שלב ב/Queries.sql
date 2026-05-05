@@ -2,8 +2,8 @@
 -- SELECT QUERIES
 -- ==========================================
 
--- Query 1 (Way 1): מציאת משתתפים שנרשמו לטיולים שמתחילים בקיץ (יוני, יולי, אוגוסט) של שנת 2026.
--- שיטה 1: שימוש ב-JOIN. מנועי SQL מודרניים יודעים לייעל שאילתות אלו היטב.
+-- Query 1 (Way 1): Find participants registered for trips starting in summer 2026.
+-- Method 1: Using JOIN. Modern SQL engines optimize these queries well.
 SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email, T.TripName, 
        EXTRACT(DAY FROM T.StartDate) AS StartDay, 
        EXTRACT(MONTH FROM T.StartDate) AS StartMonth, 
@@ -15,9 +15,9 @@ WHERE EXTRACT(YEAR FROM T.StartDate) = 2026
   AND EXTRACT(MONTH FROM T.StartDate) IN (6, 7, 8)
 ORDER BY T.StartDate, P.LastName;
 
--- Query 1 (Way 2): אותה שאילתה באמצעות תת-שאילתה עם IN.
--- הבדלי יעילות: תתי שאילתות עם IN עלולות להיות פחות יעילות במנועים ישנים כי לעיתים המנוע מריץ את תת-השאילתה עבור כל שורה בטבלה החיצונית.
--- בנוסף, בשיטה זו אי אפשר לשלוף עמודות מטבלת TRIP לתוצאה הסופית, ולכן התוצאה פחות עשירה במידע לתצוגה בממשק.
+-- Query 1 (Way 2): Same query using a subquery with IN.
+-- Efficiency note: IN subqueries might be less efficient in older engines.
+-- Additionally, we cannot select columns from the TRIP table in the final output.
 SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email
 FROM PARTICIPANT P
 WHERE P.ParticipantID IN (
@@ -30,8 +30,8 @@ WHERE P.ParticipantID IN (
 ORDER BY P.LastName;
 
 
--- Query 2 (Way 1): רשימת כמות הציוד הכוללת שהוקצתה לכל טיול, רק לטיולים עם יותר מ-5 פריטים בסך הכל.
--- שיטה 1: JOIN ואחריו GROUP BY ו-HAVING.
+-- Query 2 (Way 1): Total equipment allocated per trip, only for trips with >5 items.
+-- Method 1: JOIN followed by GROUP BY and HAVING.
 SELECT T.TripName, 
        EXTRACT(YEAR FROM T.StartDate) AS TripYear, 
        SUM(TE.QuantityAllocated) AS TotalEquipment
@@ -41,9 +41,9 @@ GROUP BY T.TripID, T.TripName, EXTRACT(YEAR FROM T.StartDate)
 HAVING SUM(TE.QuantityAllocated) > 5
 ORDER BY TotalEquipment DESC;
 
--- Query 2 (Way 2): אותה שאילתה באמצעות תת-שאילתה ב-FROM (Derived Table).
--- הבדלי יעילות: ביצוע הקיבוץ (GROUP BY) לפני ה-JOIN יכול להקטין משמעותית את כמות השורות שיש למזג (במידה וטבלת TRIP_EQUIPMENT ענקית),
--- מה שעשוי להיות מהיר יותר אם ה-HAVING מסנן הרבה שורות מראש.
+-- Query 2 (Way 2): Same query using a Derived Table in the FROM clause.
+-- Efficiency note: Grouping before joining can significantly reduce the number of rows to merge,
+-- which might be faster if the HAVING clause filters out many rows early on.
 SELECT T.TripName, 
        EXTRACT(YEAR FROM T.StartDate) AS TripYear, 
        AggTE.TotalEquipment
@@ -57,8 +57,8 @@ JOIN (
 ORDER BY TotalEquipment DESC;
 
 
--- Query 3 (Way 1): מציאת ספקים המספקים גם הסעות וגם ציוד, הצגת פרטי התקשרות להצגה בממשק מנהל.
--- שיטה 1: שימוש ב-EXISTS.
+-- Query 3 (Way 1): Find suppliers providing both transportation and equipment.
+-- Method 1: Using EXISTS.
 SELECT S.SupplierID, S.Company_Name, S.ContactPhone, S.Service_Type
 FROM SUPPLIER S
 WHERE EXISTS (
@@ -68,9 +68,9 @@ AND EXISTS (
     SELECT 1 FROM EQUIPMENT EQ WHERE EQ.SupplierID = S.SupplierID
 );
 
--- Query 3 (Way 2): אותה שאילתה באמצעות INTERSECT.
--- הבדלי יעילות: EXISTS מפסיק לחפש מיד כשהוא מוצא התאמה (Short-circuit), מה שהופך אותו למהיר מאוד.
--- לעומת זאת, INTERSECT דורש לעבור על כל השורות בשתי הטבלאות, למיין אותן או לבצע Hashing, ולמצוא חיתוך מלא, מה שלרוב דורש יותר משאבים.
+-- Query 3 (Way 2): Same query using INTERSECT.
+-- Efficiency note: EXISTS uses short-circuit evaluation making it very fast.
+-- INTERSECT requires evaluating both tables fully and computing the intersection, which is heavier.
 SELECT S.SupplierID, S.Company_Name, S.ContactPhone, S.Service_Type
 FROM SUPPLIER S
 WHERE S.SupplierID IN (
@@ -80,8 +80,8 @@ WHERE S.SupplierID IN (
 );
 
 
--- Query 4 (Way 1): פרטי הטיול עם מספר המשתתפים הרשומים הגדול ביותר.
--- שיטה 1: מיון ושימוש ב-LIMIT 1 (במנועים מסוימים כמו אורקל משתמשים ב-FETCH FIRST 1 ROWS ONLY או ROWNUM).
+-- Query 4 (Way 1): Details of the trip with the highest number of participants.
+-- Method 1: Sorting and LIMIT 1.
 SELECT T.TripName, T.Trip_Type, 
        EXTRACT(DAY FROM T.StartDate) AS StartDay,
        EXTRACT(MONTH FROM T.StartDate) AS StartMonth,
@@ -93,9 +93,9 @@ GROUP BY T.TripID, T.TripName, T.Trip_Type, T.StartDate
 ORDER BY NumParticipants DESC
 LIMIT 1;
 
--- Query 4 (Way 2): אותה שאילתה באמצעות תת-שאילתה מקוננת עם ALL.
--- הבדלי יעילות: שימוש ב-ORDER BY ו-LIMIT הוא הרבה יותר מהיר כי הוא דורש רק מעבר אחד על הנתונים, קיבוץ ומיון.
--- לעומת זאת, שימוש בתנאי ALL יחד עם תת שאילתה, מצריך את חישוב הפונקציה COUNT פעמיים (פעם לשאילתה הראשית ופעם לפנימית), פעולה כבדה מאוד.
+-- Query 4 (Way 2): Same query using a nested subquery with ALL.
+-- Efficiency note: ORDER BY and LIMIT is much faster as it requires only one pass.
+-- Using ALL requires computing the COUNT function twice (outer and inner), which is very slow.
 SELECT T.TripName, T.Trip_Type, 
        EXTRACT(DAY FROM T.StartDate) AS StartDay,
        EXTRACT(MONTH FROM T.StartDate) AS StartMonth,
@@ -111,8 +111,8 @@ HAVING COUNT(R.ParticipantID) >= ALL (
 );
 
 
--- Query 5: הצגת מסלול הטיול (שם הטיול, שם המיקום, כתובת, סדר) עבור טיול מסוים, מסודר לפי סדר ההגעה אל המיקום.
--- שאילתה לא טריוויאלית המחברת 3 טבלאות.
+-- Query 5: Full itinerary (Location, Address, Order) for 'Adventure' trips, ordered by arrival.
+-- Complex query joining 3 tables.
 SELECT T.TripName, L.LocationName, L.Region, L.Address, LT.Location_order,
        EXTRACT(DAY FROM T.StartDate) AS StartDay,
        EXTRACT(MONTH FROM T.StartDate) AS StartMonth,
@@ -124,8 +124,8 @@ WHERE T.Trip_Type = 'Adventure'
 ORDER BY T.TripID, LT.Location_order;
 
 
--- Query 6: מציאת משתתפים מעל גיל 18 שטרם החזירו ציוד מטיול שכבר הסתיים (מיועד לדו"ח חובות ציוד בממשק).
--- חיבור של 5 טבלאות! ושימוש בתאריכים.
+-- Query 6: Find adult participants (18+) with unreturned equipment from past trips.
+-- Joins 5 tables and uses date extraction.
 SELECT P.FirstName, P.LastName, P.Phone, T.TripName, EQ.ItemName, TE.Checkout_Date
 FROM PARTICIPANT P
 JOIN REGISTERS_TO R ON P.ParticipantID = R.ParticipantID
@@ -137,7 +137,7 @@ WHERE EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM P.birthday) >= 18
   AND T.EndDate < CURRENT_DATE;
 
 
--- Query 7: דו"ח חודשי של מערכת הטיולים - השנה, החודש, כמות הטיולים שמתחילים באותו חודש וממוצע גודל הקבוצה.
+-- Query 7: Monthly report - Year, Month, number of trips starting, and average group size.
 SELECT EXTRACT(YEAR FROM StartDate) AS TripYear,
        EXTRACT(MONTH FROM StartDate) AS TripMonth,
        COUNT(TripID) AS NumberOfTrips,
@@ -147,7 +147,7 @@ GROUP BY EXTRACT(YEAR FROM StartDate), EXTRACT(MONTH FROM StartDate)
 ORDER BY TripYear DESC, TripMonth DESC;
 
 
--- Query 8: רשימת 3 המיקומים הפופולריים ביותר (לפי כמות טיולים המבקרים בהם) יחד עם סך כל המשתתפים הייחודיים שיבקרו בהם.
+-- Query 8: Top 3 most popular locations by trip count, with total unique participants visiting.
 SELECT L.LocationName, L.Region, 
        COUNT(DISTINCT LT.TripID) AS TripsVisiting,
        COUNT(DISTINCT R.ParticipantID) AS TotalParticipants
@@ -163,8 +163,11 @@ LIMIT 3;
 -- UPDATE QUERIES
 -- ==========================================
 
--- Update 1: עדכון תאריך חזרה של ציוד לתאריך הסיום של הטיול, עבור טיולים שהסתיימו ולציוד יש תאריך חזרה ריק (NULL).
--- שימוש בתת-שאילתה מורכבת.
+-- Update 1: Set Return_Date to Trip EndDate for past trips where equipment is unreturned.
+-- (Pre-check test query)
+SELECT * FROM TRIP_EQUIPMENT WHERE Return_Date IS NULL AND EXISTS (SELECT 1 FROM TRIP WHERE TRIP.TripID = TRIP_EQUIPMENT.TripID AND EndDate < CURRENT_DATE AND EndDate >= '2025-01-01');
+
+-- (Execute Update)
 UPDATE TRIP_EQUIPMENT
 SET Return_Date = (SELECT EndDate FROM TRIP WHERE TRIP.TripID = TRIP_EQUIPMENT.TripID)
 WHERE Return_Date IS NULL 
@@ -172,15 +175,16 @@ WHERE Return_Date IS NULL
       SELECT 1 FROM TRIP 
       WHERE TRIP.TripID = TRIP_EQUIPMENT.TripID 
         AND EndDate < CURRENT_DATE
+        AND EndDate >= '2025-01-01'
   );
 
--- Update 2: הגדלת גודל הקבוצה ב-10% עבור כל הטיולים שמתקיימים בחודש מאי 2026.
+-- Update 2: Increase GroupSize by 10% for all trips occurring in May 2026.
 UPDATE TRIP
 SET GroupSize = ROUND(GroupSize * 1.10)
 WHERE EXTRACT(YEAR FROM StartDate) = 2026 
   AND EXTRACT(MONTH FROM StartDate) = 5;
 
--- Update 3: עדכון תיאור המיקומים באזור צפון (North) כך שיכלול את המילה ' - Popular' אם יש יותר מ-3 טיולים המבקרים שם.
+-- Update 3: Append ' - Popular' to Location Description in the North if visited by >3 trips.
 UPDATE LOCATION
 SET Description = CONCAT(COALESCE(Description, ''), ' - Popular')
 WHERE Region = 'North' 
@@ -193,26 +197,24 @@ WHERE Region = 'North'
 
 
 -- ==========================================
--- DELETE QUERIES (עם שאילתות בדיקה לדו"ח)
+-- DELETE QUERIES
 -- ==========================================
 
--- Delete 1: מחיקת ציוד שהמלאי שלו קטן או שווה ל-15 ומעולם לא הוקצה לאף טיול.
--- (בדיקה 'לפני': תסמני רק את השורות הבאות ותריצי)
+-- Delete 1: Delete unused equipment with low stock (<= 15) that was never allocated.
+-- (Pre-check test query)
 SELECT * FROM EQUIPMENT WHERE TotalInStock <= 15 AND EquipmentID NOT IN (SELECT EquipmentID FROM TRIP_EQUIPMENT);
 
--- (פעולת המחיקה: תסמני ותריצי)
+-- (Execute Delete)
 DELETE FROM EQUIPMENT
 WHERE TotalInStock <= 15 
   AND EquipmentID NOT IN (SELECT EquipmentID FROM TRIP_EQUIPMENT);
 
--- (בדיקה 'אחרי': תריצי שוב את ה-SELECT ותראי שהחלון ריק)
 
-
--- Delete 2: מחיקת רישומים לטיולים מסוג 'Extreme' שמתקיימים בשנת 2024.
--- (בדיקה 'לפני': תסמני רק את השורות הבאות ותריצי)
+-- Delete 2: Delete registrations for 'Extreme' trips occurring in 2024.
+-- (Pre-check test query)
 SELECT * FROM REGISTERS_TO WHERE TripID IN (SELECT TripID FROM TRIP WHERE Trip_Type = 'Extreme' AND EXTRACT(YEAR FROM StartDate) = 2024);
 
--- (פעולת המחיקה: תסמני ותריצי)
+-- (Execute Delete)
 DELETE FROM REGISTERS_TO
 WHERE TripID IN (
     SELECT TripID FROM TRIP 
@@ -220,15 +222,11 @@ WHERE TripID IN (
       AND EXTRACT(YEAR FROM StartDate) = 2024
 );
 
--- (בדיקה 'אחרי': תריצי שוב את ה-SELECT ותראי שהחלון ריק)
 
-
--- Delete 3: מחיקת נתוני הסעות לטיולים שכבר התקיימו והסתיימו בעבר הרחוק.
--- (בדיקה 'לפני': תסמני רק את השורות הבאות ותריצי)
+-- Delete 3: Delete old transportation records for trips that already arrived.
+-- (Pre-check test query)
 SELECT * FROM TRIP_TRANSPORTATION WHERE Arrival_Date_Time < CURRENT_TIMESTAMP;
 
--- (פעולת המחיקה: תסמני ותריצי)
+-- (Execute Delete)
 DELETE FROM TRIP_TRANSPORTATION
 WHERE Arrival_Date_Time < CURRENT_TIMESTAMP;
-
--- (בדיקה 'אחרי': תריצי שוב את ה-SELECT ותראי שהחלון ריק)

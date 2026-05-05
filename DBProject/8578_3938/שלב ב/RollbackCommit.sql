@@ -2,37 +2,37 @@
 -- PART 1: ROLLBACK & COMMIT DEMONSTRATION
 -- ==============================================
 
--- === ROLLBACK DEMO ===
--- שלב 1: צילום מסך ראשון - מראה את הנתונים לפני המחיקה
+-- === ROLLBACK DEMO (Using Delete 1 from Queries.sql) ===
+-- Step 1: First screenshot - show data before deletion
 SELECT * FROM EQUIPMENT WHERE TotalInStock <= 15 AND EquipmentID NOT IN (SELECT EquipmentID FROM TRIP_EQUIPMENT);
 
--- שלב 2: התחלת טרנזקציה ומחיקה
+-- Step 2: Begin transaction and execute delete
 BEGIN;
 DELETE FROM EQUIPMENT WHERE TotalInStock <= 15 AND EquipmentID NOT IN (SELECT EquipmentID FROM TRIP_EQUIPMENT);
 
--- שלב 3: צילום מסך שני - מראה שהטבלה ריקה (הנתונים נמחקו זמנית)
+-- Step 3: Second screenshot - show table is temporarily empty
 SELECT * FROM EQUIPMENT WHERE TotalInStock <= 15 AND EquipmentID NOT IN (SELECT EquipmentID FROM TRIP_EQUIPMENT);
 
--- שלב 4: ביטול הפעולה
+-- Step 4: Rollback the transaction
 ROLLBACK;
 
--- שלב 5: צילום מסך שלישי - מראה שהנתונים חזרו
+-- Step 5: Third screenshot - show data has been restored
 SELECT * FROM EQUIPMENT WHERE TotalInStock <= 15 AND EquipmentID NOT IN (SELECT EquipmentID FROM TRIP_EQUIPMENT);
 
 
--- === COMMIT DEMO ===
--- שלב 1: צילום מסך ראשון - הנתונים המקוריים
-SELECT * FROM TRIP WHERE EXTRACT(YEAR FROM StartDate) = 2026 AND EXTRACT(MONTH FROM StartDate) = 10;
+-- === COMMIT DEMO (Using Update 2 from Queries.sql) ===
+-- Step 1: First screenshot - show original data
+SELECT * FROM TRIP WHERE EXTRACT(YEAR FROM StartDate) = 2026 AND EXTRACT(MONTH FROM StartDate) = 5;
 
--- שלב 2: התחלת טרנזקציה וביצוע עדכון
+-- Step 2: Begin transaction and execute update
 BEGIN;
-UPDATE TRIP SET GroupSize = ROUND(GroupSize * 1.10) WHERE EXTRACT(YEAR FROM StartDate) = 2026 AND EXTRACT(MONTH FROM StartDate) = 10;
+UPDATE TRIP SET GroupSize = ROUND(GroupSize * 1.10) WHERE EXTRACT(YEAR FROM StartDate) = 2026 AND EXTRACT(MONTH FROM StartDate) = 5;
 
--- שלב 3: צילום מסך שני - מראה שהמספרים גדלו
-SELECT * FROM TRIP WHERE EXTRACT(YEAR FROM StartDate) = 2026 AND EXTRACT(MONTH FROM StartDate) = 10;
+-- Step 3: Second screenshot - show the updated numbers
+SELECT * FROM TRIP WHERE EXTRACT(YEAR FROM StartDate) = 2026 AND EXTRACT(MONTH FROM StartDate) = 5;
 
--- שלב 4: שמירה סופית
+-- Step 4: Commit the transaction to save changes
 COMMIT;
 
--- שלב 5: צילום מסך שלישי - מראה שהנתונים נשארו מעודכנים גם אחרי השמירה
-SELECT * FROM TRIP WHERE EXTRACT(YEAR FROM StartDate) = 2026 AND EXTRACT(MONTH FROM StartDate) = 10;
+-- Step 5: Third screenshot - show data remains updated after commit
+SELECT * FROM TRIP WHERE EXTRACT(YEAR FROM StartDate) = 2026 AND EXTRACT(MONTH FROM StartDate) = 5;
