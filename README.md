@@ -386,6 +386,11 @@ ORDER BY TripsVisiting DESC, TotalParticipants DESC
 LIMIT 3;
 <img width="819" height="225" alt="image" src="https://github.com/user-attachments/assets/014109b6-efe3-4810-aaa4-41fdce9b0792" />
 עדכון
+שאילתא 1 לפני 
+<img width="944" height="279" alt="image" src="https://github.com/user-attachments/assets/fd24645b-27c7-4be8-903e-22e194ea022a" />
+אחרי <img width="970" height="325" alt="image" src="https://github.com/user-attachments/assets/da1dbf48-6914-4bdc-8adf-5bb03e399189" />
+
+
 לפני שאילתא 2 <img width="1018" height="245" alt="image" src="https://github.com/user-attachments/assets/b89329d0-6d86-43af-8dd4-71082694947a" />
 
 אחרי שאילתה 2 <img width="1009" height="250" alt="image" src="https://github.com/user-attachments/assets/d8cc38ee-4a7f-4958-9f2f-aee9e02b775e" />
@@ -396,12 +401,50 @@ LIMIT 3;
 מחיקה
 שאילתה 1 לפני <img width="695" height="247" alt="image" src="https://github.com/user-attachments/assets/907a0311-7cd7-4814-bc14-255deb40bf51" />
 אחרי
-שאילתה 2 לפני
-אחרי
-שאילתה 3 לפני <img width="908" height="207" alt="image" src="https://github.com/user-attachments/assets/7a321961-7f7a-4435-a5fa-b03130033e76" />
+שאילתה 2 לפני <img width="313" height="212" alt="image (7)" src="https://github.com/user-attachments/assets/ffac75eb-6d32-42c7-81d5-7bac3fffd25a" />
 
-אחרי <img width="908" height="259" alt="image" src="https://github.com/user-attachments/assets/6e5bf11e-5ccf-4889-af94-6219aacb8d14" />
+אחרי <img width="412" height="264" alt="image" src="https://github.com/user-attachments/assets/df2c1134-f54a-4fe7-a7b6-7fe8f8885db5" />
 
+שאילתא 3 לפני <img width="1021" height="293" alt="image" src="https://github.com/user-attachments/assets/c4b4ef8d-246f-477c-990b-a9d43e3e5dc4" />
+
+אחרי <img width="1069" height="286" alt="image" src="https://github.com/user-attachments/assets/f36ff431-91f3-4dd1-b8c5-76d501ecabb9" />
+
+ROLLBACK ו BEGIN לפני מחיקה אחרי ROLLBAK ותיעוד שחזר
+<img width="786" height="301" alt="image" src="https://github.com/user-attachments/assets/f5446365-8115-4e6f-a41a-d8af5bff5366" />
+<img width="581" height="268" alt="image" src="https://github.com/user-attachments/assets/40154fdb-ff62-4fe5-8a00-215c7934f7b4" />
+<img width="725" height="214" alt="image" src="https://github.com/user-attachments/assets/16bb32be-039c-44cb-979b-3334ea12525f" />
+
+<img width="860" height="367" alt="image" src="https://github.com/user-attachments/assets/4d7ce6d6-4661-4e19-9d5e-d0ccc4028915" />
+ROLLBACK ו BEGIN לפני UPDATE וCOMMIT אחרי ROLLBAK ותיעוד שחזר
+<img width="1160" height="292" alt="image" src="https://github.com/user-attachments/assets/5a9cdff3-f0be-439a-89b1-4cf50e7d1c92" />
+<img width="688" height="269" alt="image" src="https://github.com/user-attachments/assets/39d51241-0bc1-4c52-b3be-f1a16710ff9b" />
+<img width="983" height="248" alt="image" src="https://github.com/user-attachments/assets/0a5b849a-65fc-410e-a214-eafc60eed0ca" />
+<img width="1153" height="290" alt="image" src="https://github.com/user-attachments/assets/b38a0cfb-40eb-4cf8-82c9-cbb7d56b0fbf" />
+<img width="1143" height="292" alt="image" src="https://github.com/user-attachments/assets/2a800e43-3325-459e-8dbe-02fbdd4997e5" />
+אילוץ 1
+<img width="761" height="279" alt="image" src="https://github.com/user-attachments/assets/a3efcd43-5d7a-458c-8d99-8b7f8f280bac" />
+<img width="756" height="268" alt="image" src="https://github.com/user-attachments/assets/ef86d042-1677-464f-b698-1d430187e2a6" />
+אילוץ 2 
+<img width="1007" height="319" alt="image" src="https://github.com/user-attachments/assets/a4ee74bf-a02d-4a2d-9ebb-0874631a5364" />
+<img width="731" height="228" alt="image" src="https://github.com/user-attachments/assets/536cc2e8-3db5-47cb-8194-456860445f8a" />
+
+אילוץ 3 
+<img width="1161" height="214" alt="image" src="https://github.com/user-attachments/assets/2d84d988-7183-4c4c-a2d9-a313eef4231a" />
+<img width="720" height="233" alt="image" src="https://github.com/user-attachments/assets/bdd1e5d1-95e0-485d-9cba-3e1844fa2ff1" />
+
+אינדקס 1 לפני ואחרי
+<img width="772" height="665" alt="image" src="https://github.com/user-attachments/assets/db0b273e-a21a-4f7f-ac5a-561cdaa90b6f" />
+<img width="709" height="546" alt="image" src="https://github.com/user-attachments/assets/fe380ced-bd03-4022-b6e2-d07b139924cd" />
+<img width="692" height="260" alt="image" src="https://github.com/user-attachments/assets/63e84279-adb3-4464-87ae-94112a438361" />
+אינדקס 2 לפני ואחרי 
+<img width="603" height="618" alt="image" src="https://github.com/user-attachments/assets/0740d548-fcee-4bb4-ac5d-5111b09ef126" />
+<img width="639" height="577" alt="image" src="https://github.com/user-attachments/assets/5cf79126-caaf-424e-b984-8faefae282f9" />
+<img width="659" height="176" alt="image" src="https://github.com/user-attachments/assets/70503422-f057-44f1-97fb-4ea1c596a989" />
+אינדקס 3 לפני ואחרי 
+<img width="583" height="63" alt="image" src="https://github.com/user-attachments/assets/5a1bb265-69f4-4365-83cd-e119c6b1946e" />
+<img width="599" height="67" alt="image" src="https://github.com/user-attachments/assets/ca107158-6674-45ce-a657-4099d76d991c" />
+
+<img width="683" height="134" alt="image" src="https://github.com/user-attachments/assets/be9bfcf3-6652-4146-a11e-40d0da9e293b" />
 
 
 
