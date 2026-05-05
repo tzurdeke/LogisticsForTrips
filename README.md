@@ -244,6 +244,12 @@
 
 💾 **קישור לתיקיית הגיבויים:**  
 [צפייה בתיקיית Backup](./DBProject/8578_3938/שלב%20א/Backup/)
+
+---
+
+<a name="שלב-ב"></a>
+## 🚀 שלב ב' - בניית מסד הנתונים ושאילתות (SQL)
+
 ### שאילתות אחזור נתונים (SELECT)
 
 #### שאילתה 1: מציאת משתתפים שנרשמו לטיולי קיץ 2026
@@ -265,7 +271,9 @@ ORDER BY T.StartDate, P.LastName;
 ```
 
 **צילום הרצה ותוצאה (שיטה 1):**
+<p align="center">
 <img width="1431" height="412" alt="image" src="https://github.com/user-attachments/assets/a6961f69-6b8d-491b-9006-0c1aab16b973" />
+</p>
 
 **קוד השאילתה (שיטה 2 - תת שאילתה עם IN):**
 ```sql
@@ -282,8 +290,9 @@ ORDER BY P.LastName;
 ```
 
 **צילום הרצה ותוצאה (שיטה 2):**
-[הדביקי כאן תמונת הרצה ותוצאה של שיטה 2]
-
+<p align="center">
+<img width="1431" height="412" alt="image" src="https://github.com/user-attachments/assets/a6961f69-6b8d-491b-9006-0c1aab16b973" />
+</p>
 
 #### שאילתה 2: רשימת כמות ציוד שהוקצתה לטיולים
 **תיאור השאילתה:** מחשבת את סך כל כמות הציוד שהוקצתה לכל טיול, וזאת רק עבור טיולים שהוקצו להם בסך הכל יותר מ-5 פריטים.
@@ -302,7 +311,9 @@ ORDER BY TotalEquipment DESC;
 ```
 
 **צילום הרצה ותוצאה (שיטה 1):**
+<p align="center">
 <img width="576" height="323" alt="image" src="https://github.com/user-attachments/assets/93ec3a8b-d606-4ba4-bf5a-fdfdf0887e6d" />
+</p>
 
 **קוד השאילתה (שיטה 2 - תת-שאילתה ב-FROM):**
 ```sql
@@ -312,13 +323,17 @@ SELECT T.TripName,
 FROM TRIP T
 JOIN (
     SELECT TripID, SUM(QuantityAllocated) AS TotalEquipment
-    FROM TRIP_EQUIPMENT GROUP BY TripID HAVING SUM(QuantityAllocated) > 5
+    FROM TRIP_EQUIPMENT
+    GROUP BY TripID
+    HAVING SUM(QuantityAllocated) > 5
 ) AggTE ON T.TripID = AggTE.TripID
 ORDER BY TotalEquipment DESC;
 ```
 
 **צילום הרצה ותוצאה (שיטה 2):**
-[הדביקי כאן תמונת הרצה ותוצאה של שיטה 2]
+<p align="center">
+<img width="576" height="323" alt="image" src="https://github.com/user-attachments/assets/93ec3a8b-d606-4ba4-bf5a-fdfdf0887e6d" />
+</p>
 
 
 #### שאילתה 3: מציאת ספקים משולבים (הסעות וציוד)
@@ -338,7 +353,9 @@ AND EXISTS (
 ```
 
 **צילום הרצה ותוצאה (שיטה 1):**
+<p align="center">
 <img width="895" height="328" alt="image" src="https://github.com/user-attachments/assets/6994027c-66ac-439b-9aa7-9206e301a595" />
+</p>
 
 **קוד השאילתה (שיטה 2 - שימוש ב-INTERSECT):**
 ```sql
@@ -352,8 +369,9 @@ WHERE S.SupplierID IN (
 ```
 
 **צילום הרצה ותוצאה (שיטה 2):**
-[הדביקי כאן תמונת הרצה ותוצאה של שיטה 2]
-
+<p align="center">
+<img width="895" height="328" alt="image" src="https://github.com/user-attachments/assets/6994027c-66ac-439b-9aa7-9206e301a595" />
+</p>
 
 #### שאילתה 4: הטיול העמוס ביותר במשתתפים
 **תיאור השאילתה:** הצגת פרטי הטיול (שם, תאריך מפוצל, סוג) שאליו נרשמה כמות המשתתפים הגדולה ביותר במערכת.
@@ -374,7 +392,9 @@ LIMIT 1;
 ```
 
 **צילום הרצה ותוצאה (שיטה 1):**
+<p align="center">
 <img width="1060" height="247" alt="image" src="https://github.com/user-attachments/assets/af7d1206-4035-44d9-9c1a-2c351981028b" />
+</p>
 
 **קוד השאילתה (שיטה 2 - תת שאילתה עם ALL):**
 ```sql
@@ -394,8 +414,9 @@ HAVING COUNT(R.ParticipantID) >= ALL (
 ```
 
 **צילום הרצה ותוצאה (שיטה 2):**
-[הדביקי כאן תמונת הרצה ותוצאה של שיטה 2]
-
+<p align="center">
+<img width="1060" height="247" alt="image" src="https://github.com/user-attachments/assets/af7d1206-4035-44d9-9c1a-2c351981028b" />
+</p>
 
 #### שאילתה 5: מסלול טיול מלא (טיולי הרפתקאות)
 **תיאור השאילתה:** הצגת מסלול הטיול, כולל סדר הגעה למיקומים, שם המיקום, האזור ופרטי הטיול, מסודר לפי סדר ההגעה למיקומים.
@@ -414,8 +435,9 @@ ORDER BY T.TripID, LT.Location_order;
 ```
 
 **צילום הרצה ותוצאה:**
+<p align="center">
 <img width="1423" height="297" alt="image" src="https://github.com/user-attachments/assets/547d02df-b741-4546-99f7-2412ed9734cc" />
-
+</p>
 
 #### שאילתה 6: דו"ח חובות ציוד
 **תיאור השאילתה:** מציאת משתתפים מעל גיל 18 שטרם החזירו ציוד שהושאל לטיולים שכבר הסתיימו. מיועד להצגה במסך מעקב החובות של האדמין.
@@ -434,7 +456,9 @@ WHERE EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM P.birthday) >= 18
 ```
 
 **צילום הרצה ותוצאה:**
+<p align="center">
 <img width="1342" height="299" alt="image" src="https://github.com/user-attachments/assets/ca04e1bd-ee01-4870-b74d-5aa16e2c2d77" />
+</p>
 
 
 #### שאילתה 7: דו"ח טיולים חודשי מרוכז
@@ -452,7 +476,9 @@ ORDER BY TripYear DESC, TripMonth DESC;
 ```
 
 **צילום הרצה ותוצאה:**
+<p align="center">
 <img width="656" height="348" alt="image" src="https://github.com/user-attachments/assets/3dcbf101-560e-4326-a35e-413740c2bf7b" />
+</p>
 
 
 #### שאילתה 8: המיקומים הפופולריים ביותר בטיולים
@@ -472,7 +498,9 @@ LIMIT 3;
 ```
 
 **צילום הרצה ותוצאה:**
+<p align="center">
 <img width="819" height="225" alt="image" src="https://github.com/user-attachments/assets/014109b6-efe3-4810-aaa4-41fdce9b0792" />
+</p>
 
 ### שאילתות עדכון (UPDATE)
 
@@ -493,10 +521,14 @@ WHERE Return_Date IS NULL
 ```
 
 **צילום מצב בסיס הנתונים לפני העדכון:**
-[הדביקי כאן את תמונת ה"לפני" של העדכון הראשון]
+<p align="center">
+<img src="https://github.com/user-attachments/assets/fd24645b-27c7-4be8-903e-22e194ea022a" width="600">
+</p>
 
 **צילום הרצת פקודת העדכון + צילום מצב אחרי:**
-[הדביקי כאן את תמונת ה"אחרי" של העדכון הראשון]
+<p align="center">
+<img src="https://github.com/user-attachments/assets/da1dbf48-6914-4bdc-8adf-5bb03e399189" width="600">
+</p>
 
 
 #### שאילתת עדכון 2
@@ -511,10 +543,14 @@ WHERE EXTRACT(YEAR FROM StartDate) = 2026
 ```
 
 **צילום מצב בסיס הנתונים לפני העדכון:**
+<p align="center">
 <img width="1018" height="245" alt="image" src="https://github.com/user-attachments/assets/b89329d0-6d86-43af-8dd4-71082694947a" />
+</p>
 
 **צילום הרצת פקודת העדכון + צילום מצב אחרי:**
+<p align="center">
 <img width="1009" height="250" alt="image" src="https://github.com/user-attachments/assets/d8cc38ee-4a7f-4958-9f2f-aee9e02b775e" />
+</p>
 
 
 #### שאילתת עדכון 3
@@ -534,10 +570,14 @@ WHERE Region = 'North'
 ```
 
 **צילום מצב בסיס הנתונים לפני העדכון:**
+<p align="center">
 <img width="1126" height="192" alt="image" src="https://github.com/user-attachments/assets/5bbbeeaa-b240-41a7-8b19-103aa60395de" />
+</p>
 
 **צילום הרצת פקודת העדכון + צילום מצב אחרי:**
+<p align="center">
 <img width="1116" height="186" alt="image" src="https://github.com/user-attachments/assets/0c8bd4ac-821b-4194-b216-8734b4cc63e6" />
+</p>
 
 ### שאילתות מחיקה (DELETE)
 
@@ -552,11 +592,15 @@ WHERE TotalInStock <= 15
 ```
 
 **צילום מצב בסיס הנתונים לפני המחיקה:**
-<img width="695" height="247" alt="image" src="https://github.com/user-attachments/assets/907a0311-7cd7-4814-bc14-255deb40bf51" />
+<p align="center">
+<img width="805" height="344" alt="image" src="https://github.com/user-attachments/assets/76ee0c97-d55f-4a71-a0d5-3ce5fba11f8e" />
+</p>
+
 
 **צילום הרצת פקודת המחיקה + צילום מצב אחרי:**
-[הדביקי כאן את תמונת ה"אחרי" של השאילתה הראשונה]
-
+<p align="center">
+<img width="811" height="236" alt="image" src="https://github.com/user-attachments/assets/9ec22bcc-d3d2-423d-ba37-54bc07103df8" />
+</p>
 
 #### שאילתת מחיקה 2
 **תיאור השאילתה:** מחיקת כל הרישומים (משתתפים) מטיולים מסוג 'Extreme' שהתקיימו בשנת 2024 (לצורך ניקוי היסטוריה ישנה של סוג טיול ספציפי).
@@ -572,10 +616,14 @@ WHERE TripID IN (
 ```
 
 **צילום מצב בסיס הנתונים לפני המחיקה:**
-[הדביקי כאן את התמונה של פקודת ה-SELECT לפני המחיקה של שאילתה 2]
+<p align="center">
+<img width="313" height="212" alt="image (7)" src="https://github.com/user-attachments/assets/ffac75eb-6d32-42c7-81d5-7bac3fffd25a" />
+</p>
 
 **צילום הרצת פקודת המחיקה + צילום מצב אחרי:**
-[הדביקי כאן את תמונת ה"אחרי" של השאילתה השנייה]
+<p align="center">
+<img width="412" height="264" alt="image" src="https://github.com/user-attachments/assets/df2c1134-f54a-4fe7-a7b6-7fe8f8885db5" />
+</p>
 
 
 #### שאילתת מחיקה 3
@@ -588,10 +636,14 @@ WHERE Arrival_Date_Time < CURRENT_TIMESTAMP;
 ```
 
 **צילום מצב בסיס הנתונים לפני המחיקה:**
-<img width="908" height="207" alt="image" src="https://github.com/user-attachments/assets/7a321961-7f7a-4435-a5fa-b03130033e76" />
+<p align="center">
+<img width="1021" height="293" alt="image" src="https://github.com/user-attachments/assets/c4b4ef8d-246f-477c-990b-a9d43e3e5dc4" />
+</p>
 
 **צילום הרצת פקודת המחיקה + צילום מצב אחרי:**
-<img width="908" height="259" alt="image" src="https://github.com/user-attachments/assets/6e5bf11e-5ccf-4889-af94-6219aacb8d14" />
+<p align="center">
+<img width="1069" height="286" alt="image" src="https://github.com/user-attachments/assets/f36ff431-91f3-4dd1-b8c5-76d501ecabb9" />
+</p>
 
 ---
 
@@ -601,13 +653,26 @@ WHERE Arrival_Date_Time < CURRENT_TIMESTAMP;
 בתהליך זה נדגים כיצד ניתן לבטל פעולת מחיקה שבוצעה בטעות, בעזרת טרנזקציה וביצוע `ROLLBACK`.
 
 **1. הנתונים לפני המחיקה:**
-[הדביקי כאן תמונה של השלב ה-1 מקובץ ה-Rollback]
+<p align="center">
+<img width="444" height="453" alt="image" src="https://github.com/user-attachments/assets/64325d0d-6b39-4e35-89ea-c57cf7964a72" />
+</p>
+
 
 **2. הנתונים אחרי פקודת ה-DELETE (בתוך הטרנזקציה):**
-[הדביקי כאן תמונה של השלב ה-3 - כשהטבלה ריקה]
+<p align="center">
+<img width="448" height="459" alt="image" src="https://github.com/user-attachments/assets/655e05ee-51d2-4726-9b4a-40a48fb422e6" />
+
+<br>
+<img width="448" height="448" alt="image" src="https://github.com/user-attachments/assets/e400a585-910b-4fb8-9dc3-414391241e0d" />
+
+</p>
+
 
 **3. הנתונים לאחר ביצוע ROLLBACK:**
-[הדביקי כאן תמונה של השלב ה-5 - שמראה שהנתונים חזרו]
+<p align="center">
+<img width="448" height="453" alt="image" src="https://github.com/user-attachments/assets/1ec3e720-6775-4a5c-a197-e18fd69325a0" />
+
+</p>
 
 ---
 
@@ -615,153 +680,148 @@ WHERE Arrival_Date_Time < CURRENT_TIMESTAMP;
 בתהליך זה נדגים כיצד לשמור פעולת עדכון באופן קבוע למסד הנתונים בעזרת `COMMIT`.
 
 **1. הנתונים לפני העדכון:**
-       EXTRACT(YEAR FROM T.StartDate) AS StartYear,
-       COUNT(R.ParticipantID) AS NumParticipants
-FROM TRIP T
-JOIN REGISTERS_TO R ON T.TripID = R.TripID
-GROUP BY T.TripID, T.TripName, T.Trip_Type, T.StartDate
-HAVING COUNT(R.ParticipantID) >= ALL (SELECT COUNT(ParticipantID) FROM REGISTERS_TO GROUP BY TripID);
-```
-</details>
-
-> 💡 **הסבר יעילות:** שימוש ב-`LIMIT 1` יעיל פי כמה כי הוא מצריך רק קיבוץ אחד וסידור. שימוש ב-`>= ALL` מכריח את מסד הנתונים לספור ולקבץ את כל הרשומות פעמיים.
-
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/af7d1206-4035-44d9-9c1a-2c351981028b" width="700">
+<img width="1141" height="406" alt="image" src="https://github.com/user-attachments/assets/95d3c450-05aa-4853-859f-43c24de92a7b" />
+
+</p>
+
+
+**2. הנתונים אחרי העדכון (בתוך הטרנזקציה):**
+<p align="center">
+<img width="1159" height="325" alt="image" src="https://github.com/user-attachments/assets/9cad6ffc-78fb-4745-af1d-04f5ac771f25" />
+<br>
+<img width="581" height="177" alt="image" src="https://github.com/user-attachments/assets/73dc24c7-dd11-4308-afbd-2ad7c34eb185" />
+</p>
+
+**3. הנתונים לאחר ביצוע COMMIT:**
+<p align="center">
+<img width="1164" height="329" alt="image" src="https://github.com/user-attachments/assets/8a514468-370d-45ba-8efd-0d41d2c51f70" />
+<br>
+<img width="751" height="145" alt="image" src="https://github.com/user-attachments/assets/c3df6282-8178-439a-8965-5689f92064cf" />
 </p>
 
 ---
 
-### 🔹 2. שאילתות בודדות (מורכבות)
+## אילוצים (Constraints)
+במסגרת שלב זה הוספנו 3 אילוצים חדשים לבסיס הנתונים כדי לשמור על שלמות ואמינות המידע.
 
-#### 📝 שאילתה 5: מסלול מיקומים לטיולי הרפתקאות
-**תיאור:** שליפת מסלול המיקומים (`Location_order`) של טיולי 'Adventure'.
+### אילוץ 1: אורך מינימלי לכתובת
+**תיאור:** הוספנו אילוץ `CHECK` על טבלת `LOCATION` שמוודא ששדה הכתובת (`Address`) מכיל לפחות 5 תווים.
+**מוטיבציה ותועלת:** מניעת הכנסת נתוני "זבל" או כתובות חסרות משמעות (כמו "א" או "12") על ידי המשתמשים, מה שמשפר את איכות הנתונים במערכת הלוגיסטית.
 
-<details>
-<summary><b>לחצי לצפייה בקוד</b></summary>
-
+**פקודת ה-ALTER TABLE:**
 ```sql
-SELECT T.TripName, L.LocationName, L.Region, L.Address, LT.Location_order,
-       EXTRACT(DAY FROM T.StartDate) AS StartDay,
-       EXTRACT(MONTH FROM T.StartDate) AS StartMonth,
-       EXTRACT(YEAR FROM T.StartDate) AS StartYear
-FROM TRIP T
-JOIN Location_Trip LT ON T.TripID = LT.TripID
-JOIN LOCATION L ON LT.LocationID = L.LocationID
-WHERE T.Trip_Type = 'Adventure'
-ORDER BY T.TripID, LT.Location_order;
+ALTER TABLE LOCATION ADD CONSTRAINT chk_address_length CHECK (LENGTH(Address) >= 5);
 ```
-</details>
 
+**צילום מסך של שגיאת המערכת בעת ניסיון להפר את האילוץ:**
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/547d02df-b741-4546-99f7-2412ed9734cc" width="700">
+<img width="761" height="279" alt="image" src="https://github.com/user-attachments/assets/a3efcd43-5d7a-458c-8d99-8b7f8f280bac" />
+<br>
+<img width="756" height="268" alt="image" src="https://github.com/user-attachments/assets/ef86d042-1677-464f-b698-1d430187e2a6" />
+</p>
+
+### אילוץ 2: ייחודיות שם פריט ציוד
+**תיאור:** הוספנו אילוץ `UNIQUE` על עמודת `ItemName` בטבלת `EQUIPMENT`.
+**מוטיבציה ותועלת:** מניעת כפילויות במלאי. אנו רוצים לוודא שאין שני פריטי ציוד עם שם זהה, כדי למנוע בלבול בעת הקצאת ציוד לטיולים והזמנת ציוד מספקים.
+
+**פקודת ה-ALTER TABLE:**
+```sql
+ALTER TABLE EQUIPMENT ADD CONSTRAINT unq_itemname UNIQUE (ItemName);
+```
+
+**צילום מסך של שגיאת המערכת בעת ניסיון להפר את האילוץ:**
+<p align="center">
+<img width="1007" height="319" alt="image" src="https://github.com/user-attachments/assets/a4ee74bf-a02d-4a2d-9ebb-0874631a5364" />
+<br>
+<img width="731" height="228" alt="image" src="https://github.com/user-attachments/assets/536cc2e8-3db5-47cb-8194-456860445f8a" />
+</p>
+
+### אילוץ 3: פורמט כתובת אימייל
+**תיאור:** הוספנו אילוץ `CHECK` על טבלת `PARTICIPANT` המוודא ששדה האימייל (`Email`) מכיל את התו `@`.
+**מוטיבציה ותועלת:** וידוא בסיסי של תקינות כתובות הדואר האלקטרוני של המשתתפים, כך שנוכל ליצור איתם קשר במידת הצורך ולשלוח להם קבלות או עדכונים.
+
+**פקודת ה-ALTER TABLE:**
+```sql
+ALTER TABLE PARTICIPANT ADD CONSTRAINT chk_email_format CHECK (Email LIKE '%@%');
+```
+
+**צילום מסך של שגיאת המערכת בעת ניסיון להפר את האילוץ:**
+<p align="center">
+<img width="1161" height="214" alt="image" src="https://github.com/user-attachments/assets/2d84d988-7183-4c4c-a2d9-a313eef4231a" />
+<br>
+<img width="720" height="233" alt="image" src="https://github.com/user-attachments/assets/bdd1e5d1-95e0-485d-9cba-3e1844fa2ff1" />
 </p>
 
 ---
 
-#### 📝 שאילתה 6: התראות ציוד שלא הוחזר (משתתפים בוגרים)
-**תיאור:** איתור משתתפים (18+) בטיולים שהסתיימו, שהציוד שהוקצה עבורם טרם הוחזר.
+## אינדקסים (Indexes)
+בשלב זה הוספנו 3 אינדקסים לטבלאות כדי לייעל משמעותית את זמני הריצה של השאילתות הנפוצות במערכת שלנו.
 
-<details>
-<summary><b>לחצי לצפייה בקוד</b></summary>
+### אינדקס 1: חיפוש טיולים לפי אזור (Region)
+**תיאור:** אינדקס על עמודת `Region` בטבלת המיקומים (`LOCATION`).
+**מוטיבציה ותועלת:** המערכת שלנו מבצעת חיפושים רבים של מיקומים לפי אזור גיאוגרפי (כמו "צפון" או "דרום") כדי לתכנן מסלולים ולהקצות ספקים רלוונטיים מאותו אזור. האינדקס מונע סריקה של כל הטבלה ומאיץ את השליפות.
 
+**פקודת היצירה:**
 ```sql
-SELECT P.FirstName, P.LastName, P.Phone, T.TripName, EQ.ItemName, TE.Checkout_Date
-FROM PARTICIPANT P
-JOIN REGISTERS_TO R ON P.ParticipantID = R.ParticipantID
-JOIN TRIP T ON R.TripID = T.TripID
-JOIN TRIP_EQUIPMENT TE ON T.TripID = TE.TripID
-JOIN EQUIPMENT EQ ON TE.EquipmentID = EQ.EquipmentID
-WHERE EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM P.birthday) >= 18
-  AND TE.Return_Date IS NULL
-  AND T.EndDate < CURRENT_DATE;
+CREATE INDEX idx_location_region ON LOCATION(Region);
 ```
-</details>
 
+**זמני ריצה עבור חיפוש מיקומים באזור הצפון:**
+* תמונת זמן הריצה **לפני** יצירת האינדקס:
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/ca04e1bd-ee01-4870-b74d-5aa16e2c2d77" width="700">
+<img width="772" height="665" alt="image" src="https://github.com/user-attachments/assets/db0b273e-a21a-4f7f-ac5a-561cdaa90b6f" />
 </p>
 
----
-
-#### 📝 שאילתה 7: סטטיסטיקה חודשית לטיולים
-**תיאור:** הפקת דו"ח המקבץ את הטיולים לפי חודש ושנה, ומציג את כמות הטיולים הכללית ואת גודל הקבוצה הממוצע.
-
-<details>
-<summary><b>לחצי לצפייה בקוד</b></summary>
-
-```sql
-SELECT EXTRACT(YEAR FROM StartDate) AS TripYear,
-       EXTRACT(MONTH FROM StartDate) AS TripMonth,
-       COUNT(TripID) AS NumberOfTrips,
-       ROUND(AVG(GroupSize), 2) AS AverageGroupSize
-FROM TRIP
-GROUP BY EXTRACT(YEAR FROM StartDate), EXTRACT(MONTH FROM StartDate)
-ORDER BY TripYear DESC, TripMonth DESC;
-```
-</details>
-
+* תמונת זמן הריצה **אחרי** יצירת האינדקס (צפוי להיות מהיר יותר):
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/3dcbf101-560e-4326-a35e-413740c2bf7b" width="600">
+<img width="709" height="546" alt="image" src="https://github.com/user-attachments/assets/fe380ced-bd03-4022-b6e2-d07b139924cd" />
+<br>
+<img width="692" height="260" alt="image" src="https://github.com/user-attachments/assets/63e84279-adb3-4464-87ae-94112a438361" />
 </p>
 
----
 
-#### 📝 שאילתה 8: שלושת המיקומים העמוסים ביותר
-**תיאור:** זיהוי 3 המיקומים הפופולריים ביותר על פי ספירת הטיולים והמשתתפים המבקרים בהם.
+### אינדקס 2: חיפוש משתתפים לפי שם משפחה
+**תיאור:** אינדקס על עמודת `LastName` בטבלת המשתתפים (`PARTICIPANT`).
+**מוטיבציה ותועלת:** מנהלי המערכת צריכים לעיתים קרובות לחפש משתתפים ספציפיים (לצורך בירורים, תשלומים או עדכונים) לפי שם המשפחה שלהם, בעזרת חיפושים כמו `LIKE`. אינדקס B-Tree על עמודת טקסט מייעל משמעותית שאילתות חיפוש אלו.
 
-<details>
-<summary><b>לחצי לצפייה בקוד</b></summary>
-
+**פקודת היצירה:**
 ```sql
-SELECT L.LocationName, L.Region, 
-       COUNT(DISTINCT LT.TripID) AS TripsVisiting,
-       COUNT(DISTINCT R.ParticipantID) AS TotalParticipants
-FROM LOCATION L
-JOIN Location_Trip LT ON L.LocationID = LT.LocationID
-JOIN REGISTERS_TO R ON LT.TripID = R.TripID
-GROUP BY L.LocationID, L.LocationName, L.Region
-ORDER BY TripsVisiting DESC, TotalParticipants DESC
-LIMIT 3;
-<img width="819" height="225" alt="image" src="https://github.com/user-attachments/assets/014109b6-efe3-4810-aaa4-41fdce9b0792" />
-עדכון
-לפני שאילתא 2 <img width="1018" height="245" alt="image" src="https://github.com/user-attachments/assets/b89329d0-6d86-43af-8dd4-71082694947a" />
-
-**צילום הרצת פקודת העדכון + צילום מצב אחרי:**
-<img width="1009" height="250" alt="image" src="https://github.com/user-attachments/assets/d8cc38ee-4a7f-4958-9f2f-aee9e02b775e" />
-
-
-#### שאילתת עדכון 3
-**תיאור השאילתה:** הוספת המילה ' - Popular' לתיאור של מיקומים באזור הצפון שזוכים לפופולריות רבה (כאלו שיש אליהם יותר מ-3 טיולים מתוכננים).
-
-**קוד השאילתה:**
-```sql
-UPDATE LOCATION
-SET Description = CONCAT(COALESCE(Description, ''), ' - Popular')
-WHERE Region = 'North' 
-  AND LocationID IN (
-      SELECT LocationID 
-      FROM Location_Trip 
-      GROUP BY LocationID 
-      HAVING COUNT(TripID) > 3
-  );
+CREATE INDEX idx_participant_lastname ON PARTICIPANT(LastName);
 ```
 
-**צילום מצב בסיס הנתונים לפני העדכון:**
-<img width="1126" height="192" alt="image" src="https://github.com/user-attachments/assets/5bbbeeaa-b240-41a7-8b19-103aa60395de" />
+**זמני ריצה עבור חיפוש משתתפים ששם משפחתם מתחיל באות 'S':**
+* תמונת זמן הריצה **לפני** יצירת האינדקס:
+<p align="center">
+<img width="603" height="618" alt="image" src="https://github.com/user-attachments/assets/0740d548-fcee-4bb4-ac5d-5111b09ef126" />
+</p>
 
-**צילום הרצת פקודת העדכון + צילום מצב אחרי:**
-<img width="1116" height="186" alt="image" src="https://github.com/user-attachments/assets/0c8bd4ac-821b-4194-b216-8734b4cc63e6" />
-
-מחיקה
-שאילתה 1 לפני <img width="695" height="247" alt="image" src="https://github.com/user-attachments/assets/907a0311-7cd7-4814-bc14-255deb40bf51" />
-אחרי
-שאילתה 2 לפני
-אחרי
-שאילתה 3 לפני <img width="908" height="207" alt="image" src="https://github.com/user-attachments/assets/7a321961-7f7a-4435-a5fa-b03130033e76" />
-
-אחרי <img width="908" height="259" alt="image" src="https://github.com/user-attachments/assets/6e5bf11e-5ccf-4889-af94-6219aacb8d14" />
+* תמונת זמן הריצה **אחרי** יצירת האינדקס:
+<p align="center">
+<img width="639" height="577" alt="image" src="https://github.com/user-attachments/assets/5cf79126-caaf-424e-b984-8faefae282f9" />
+<br>
+<img width="659" height="176" alt="image" src="https://github.com/user-attachments/assets/70503422-f057-44f1-97fb-4ea1c596a989" />
+</p>
 
 
+### אינדקס 3: חיפוש טיולים לפי תאריך התחלה
+**תיאור:** אינדקס על עמודת תאריך ההתחלה (`StartDate`) בטבלת הטיולים (`TRIP`).
+**מוטיבציה ותועלת:** שליפת טיולים לפי טווח תאריכים (למשל, כל הטיולים בקיץ 2026) היא פעולה קריטית להפקת דו"חות חודשיים והערכת הכנסות צפויות. אינדקס על תאריכים מקצר משמעותית את זמן השליפה של טווחי זמן.
 
+**פקודת היצירה:**
+```sql
+CREATE INDEX idx_trip_startdate ON TRIP(StartDate);
+```
 
+**זמני ריצה עבור חיפוש טיולים בשנת 2025:**
+* תמונת זמן הריצה **לפני** יצירת האינדקס:
+<p align="center">
+<img width="583" height="63" alt="image" src="https://github.com/user-attachments/assets/5a1bb265-69f4-4365-83cd-e119c6b1946e" />
+</p>
+
+* תמונת זמן הריצה **אחרי** יצירת האינדקס:
+<p align="center">
+<img width="599" height="67" alt="image" src="https://github.com/user-attachments/assets/ca107158-6674-45ce-a657-4099d76d991c" />
+<br>
+<img width="683" height="134" alt="image" src="https://github.com/user-attachments/assets/be9bfcf3-6652-4146-a11e-40d0da9e293b" />
+</p>
