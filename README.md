@@ -23,6 +23,7 @@
 6. [🗃️ SQL Scripts](#sql-scripts)
 7. [📊 יצירת נתונים (CSV & Python)](#יצירת-נתונים)
 8. [💾 גיבוי (Backup)](#גיבוי)
+9. [🚀 שלב ב' - מסד הנתונים](#שלב-ב)
 
 ---
 
@@ -243,8 +244,24 @@
 
 💾 **קישור לתיקיית הגיבויים:**  
 [צפייה בתיקיית Backup](./DBProject/8578_3938/שלב%20א/Backup/)
-שלב 2
-שאילתא 1 
+
+---
+
+<a name="שלב-ב"></a>
+## 🚀 שלב ב' - בניית מסד הנתונים ושאילתות (SQL)
+
+בחלק זה יפורטו שאילתות מורכבות שנכתבו למערכת, תוך דגש על יעילות (Performance), אילוצים, טרנזקציות ועדכונים.
+
+### 🔹 1. שאילתות כפולות (השוואת יעילות)
+
+#### 📝 שאילתה 1: פרטי משתתפים בטיולי קיץ 2026
+**תיאור:** שליפת פרטי המשתתפים שנרשמו לטיולים בקיץ (יוני-אוגוסט) 2026.
+
+<details>
+<summary><b>לחצי לצפייה בקוד (דרך 1 - JOIN מול דרך 2 - IN)</b></summary>
+
+**דרך 1 (JOIN):**
+```sql
 SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email, T.TripName, 
        EXTRACT(DAY FROM T.StartDate) AS StartDay, 
        EXTRACT(MONTH FROM T.StartDate) AS StartMonth, 
@@ -255,9 +272,10 @@ JOIN TRIP T ON R.TripID = T.TripID
 WHERE EXTRACT(YEAR FROM T.StartDate) = 2026 
   AND EXTRACT(MONTH FROM T.StartDate) IN (6, 7, 8)
 ORDER BY T.StartDate, P.LastName;
+```
 
--- Query 1 (Way 2): אותה שאילתה באמצעות תת-שאילתה עם IN.
-
+**דרך 2 (IN):**
+```sql
 SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email
 FROM PARTICIPANT P
 WHERE P.ParticipantID IN (
@@ -268,43 +286,67 @@ WHERE P.ParticipantID IN (
       AND EXTRACT(MONTH FROM T.StartDate) IN (6, 7, 8)
 )
 ORDER BY P.LastName;
+```
+</details>
 
-<img width="1431" height="412" alt="image" src="https://github.com/user-attachments/assets/a6961f69-6b8d-491b-9006-0c1aab16b973" />
-שאילתא 2
-SELECT T.TripName, 
-       EXTRACT(YEAR FROM T.StartDate) AS TripYear, 
-       SUM(TE.QuantityAllocated) AS TotalEquipment
-FROM TRIP T
-JOIN TRIP_EQUIPMENT TE ON T.TripID = TE.TripID
+> 💡 **הסבר יעילות:** ברוב מסדי הנתונים המודרניים, שימוש ב-`JOIN` (דרך 1) נחשב ליעיל יותר. הוא מאפשר ל-Optimizer גמישות בבחירת סדר חיבור הטבלאות, בעוד ש-`IN` עלול לאלץ יצירת טבלת ביניים וסינון כפילויות לפני החיבור.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a6961f69-6b8d-491b-9006-0c1aab16b973" width="700">
+</p>
+
+---
+
+#### 📝 שאילתה 2: טיולים עם כמות ציוד גדולה
+**תיאור:** החזרת שמות הטיולים ושנת קיומם, עבור טיולים שהוקצו להם מעל 5 פריטי ציוד.
+
+<details>
+<summary><b>לחצי לצפייה בקוד (דרך 1 - GROUP BY מול דרך 2 - Derived Table)</b></summary>
+
+**דרך 1 (קיבוץ לאחר JOIN):**
+```sql
+SELECT T.TripName, EXTRACT(YEAR FROM T.StartDate) AS TripYear, SUM(TE.QuantityAllocated) AS TotalEquipment
+FROM TRIP T JOIN TRIP_EQUIPMENT TE ON T.TripID = TE.TripID
 GROUP BY T.TripID, T.TripName, EXTRACT(YEAR FROM T.StartDate)
 HAVING SUM(TE.QuantityAllocated) > 5
 ORDER BY TotalEquipment DESC;
+```
 
--- Query 2 (Way 2): אותה שאילתה באמצעות תת-שאילתה ב-FROM (Derived Table).
-SELECT T.TripName, 
-       EXTRACT(YEAR FROM T.StartDate) AS TripYear, 
-       AggTE.TotalEquipment
-FROM TRIP T
-JOIN (
+**דרך 2 (Derived Table):**
+```sql
+SELECT T.TripName, EXTRACT(YEAR FROM T.StartDate) AS TripYear, AggTE.TotalEquipment
+FROM TRIP T JOIN (
     SELECT TripID, SUM(QuantityAllocated) AS TotalEquipment
-    FROM TRIP_EQUIPMENT
-    GROUP BY TripID
-    HAVING SUM(QuantityAllocated) > 5
+    FROM TRIP_EQUIPMENT GROUP BY TripID HAVING SUM(QuantityAllocated) > 5
 ) AggTE ON T.TripID = AggTE.TripID
 ORDER BY TotalEquipment DESC;
-<img width="576" height="323" alt="image" src="https://github.com/user-attachments/assets/93ec3a8b-d606-4ba4-bf5a-fdfdf0887e6d" />
-שאילתא 3
+```
+</details>
+
+> 💡 **הסבר יעילות:** דרך 2 (Derived Table) יעילה משמעותית. במקום לבצע `JOIN` על כל הטבלאות ואז לקבץ (מה שדורש זיכרון רב), אנו מצמצמים קודם כל את טבלת הציוד בעזרת הקיבוץ, ורק אז מחברים אותה לטבלת הטיולים.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/93ec3a8b-d606-4ba4-bf5a-fdfdf0887e6d" width="600">
+</p>
+
+---
+
+#### 📝 שאילתה 3: ספקים המספקים גם ציוד וגם הסעות
+**תיאור:** איתור ספקים ייחודיים שנותנים שירותים כפולים (ציוד והסעות).
+
+<details>
+<summary><b>לחצי לצפייה בקוד (דרך 1 - EXISTS מול דרך 2 - INTERSECT)</b></summary>
+
+**דרך 1 (EXISTS):**
+```sql
 SELECT S.SupplierID, S.Company_Name, S.ContactPhone, S.Service_Type
 FROM SUPPLIER S
-WHERE EXISTS (
-    SELECT 1 FROM TRANSPORTATION TR WHERE TR.SupplierID = S.SupplierID
-)
-AND EXISTS (
-    SELECT 1 FROM EQUIPMENT EQ WHERE EQ.SupplierID = S.SupplierID
-);
+WHERE EXISTS (SELECT 1 FROM TRANSPORTATION TR WHERE TR.SupplierID = S.SupplierID)
+  AND EXISTS (SELECT 1 FROM EQUIPMENT EQ WHERE EQ.SupplierID = S.SupplierID);
+```
 
--- Query 3 (Way 2): אותה שאילתה באמצעות INTERSECT.
-
+**דרך 2 (INTERSECT):**
+```sql
 SELECT S.SupplierID, S.Company_Name, S.ContactPhone, S.Service_Type
 FROM SUPPLIER S
 WHERE S.SupplierID IN (
@@ -312,37 +354,57 @@ WHERE S.SupplierID IN (
     INTERSECT
     SELECT SupplierID FROM EQUIPMENT
 );
+```
+</details>
 
-<img width="895" height="328" alt="image" src="https://github.com/user-attachments/assets/6994027c-66ac-439b-9aa7-9206e301a595" />
-שאילתא 4
-SELECT T.TripName, T.Trip_Type, 
-       EXTRACT(DAY FROM T.StartDate) AS StartDay,
-       EXTRACT(MONTH FROM T.StartDate) AS StartMonth,
-       EXTRACT(YEAR FROM T.StartDate) AS StartYear,
-       COUNT(R.ParticipantID) AS NumParticipants
-FROM TRIP T
-JOIN REGISTERS_TO R ON T.TripID = R.TripID
+> 💡 **הסבר יעילות:** דרך 1 (`EXISTS`) יעילה בהרבה בזכות ה-"קצר החשמלי" (Short-circuiting) – המערכת עוצרת ברגע שהיא מוצאת התאמה אחת. ב-`INTERSECT` המערכת נאלצת לסרוק ולמיין את שתי הטבלאות במלואן רק כדי למצוא חיתוך.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6994027c-66ac-439b-9aa7-9206e301a595" width="700">
+</p>
+
+---
+
+#### 📝 שאילתה 4: הטיול המבוקש ביותר
+**תיאור:** מציאת הטיול היחיד עם כמות המשתתפים הגדולה ביותר.
+
+<details>
+<summary><b>לחצי לצפייה בקוד (דרך 1 - LIMIT מול דרך 2 - ALL)</b></summary>
+
+**דרך 1 (LIMIT):**
+```sql
+SELECT T.TripName, T.Trip_Type, EXTRACT(DAY FROM T.StartDate) AS StartDay, EXTRACT(MONTH FROM T.StartDate) AS StartMonth, EXTRACT(YEAR FROM T.StartDate) AS StartYear, COUNT(R.ParticipantID) AS NumParticipants
+FROM TRIP T JOIN REGISTERS_TO R ON T.TripID = R.TripID
 GROUP BY T.TripID, T.TripName, T.Trip_Type, T.StartDate
-ORDER BY NumParticipants DESC
-LIMIT 1;
+ORDER BY NumParticipants DESC LIMIT 1;
+```
 
--- Query 4 (Way 2): אותה שאילתה באמצעות תת-שאילתה מקוננת עם ALL.
-
-SELECT T.TripName, T.Trip_Type, 
-       EXTRACT(DAY FROM T.StartDate) AS StartDay,
-       EXTRACT(MONTH FROM T.StartDate) AS StartMonth,
-       EXTRACT(YEAR FROM T.StartDate) AS StartYear,
-       COUNT(R.ParticipantID) AS NumParticipants
-FROM TRIP T
-JOIN REGISTERS_TO R ON T.TripID = R.TripID
+**דרך 2 (ALL):**
+```sql
+SELECT T.TripName, T.Trip_Type, EXTRACT(DAY FROM T.StartDate) AS StartDay, EXTRACT(MONTH FROM T.StartDate) AS StartMonth, EXTRACT(YEAR FROM T.StartDate) AS StartYear, COUNT(R.ParticipantID) AS NumParticipants
+FROM TRIP T JOIN REGISTERS_TO R ON T.TripID = R.TripID
 GROUP BY T.TripID, T.TripName, T.Trip_Type, T.StartDate
-HAVING COUNT(R.ParticipantID) >= ALL (
-    SELECT COUNT(ParticipantID)
-    FROM REGISTERS_TO
-    GROUP BY TripID
-);
-<img width="1060" height="247" alt="image" src="https://github.com/user-attachments/assets/af7d1206-4035-44d9-9c1a-2c351981028b" />
-שאילתא 5
+HAVING COUNT(R.ParticipantID) >= ALL (SELECT COUNT(ParticipantID) FROM REGISTERS_TO GROUP BY TripID);
+```
+</details>
+
+> 💡 **הסבר יעילות:** שימוש ב-`LIMIT 1` יעיל פי כמה כי הוא מצריך רק קיבוץ אחד וסידור. שימוש ב-`>= ALL` מכריח את מסד הנתונים לספור ולקבץ את כל הרשומות פעמיים.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/af7d1206-4035-44d9-9c1a-2c351981028b" width="700">
+</p>
+
+---
+
+### 🔹 2. שאילתות בודדות (מורכבות)
+
+#### 📝 שאילתה 5: מסלול מיקומים לטיולי הרפתקאות
+**תיאור:** שליפת מסלול המיקומים (`Location_order`) של טיולי 'Adventure'.
+
+<details>
+<summary><b>לחצי לצפייה בקוד</b></summary>
+
+```sql
 SELECT T.TripName, L.LocationName, L.Region, L.Address, LT.Location_order,
        EXTRACT(DAY FROM T.StartDate) AS StartDay,
        EXTRACT(MONTH FROM T.StartDate) AS StartMonth,
@@ -352,8 +414,22 @@ JOIN Location_Trip LT ON T.TripID = LT.TripID
 JOIN LOCATION L ON LT.LocationID = L.LocationID
 WHERE T.Trip_Type = 'Adventure'
 ORDER BY T.TripID, LT.Location_order;
-<img width="1423" height="297" alt="image" src="https://github.com/user-attachments/assets/547d02df-b741-4546-99f7-2412ed9734cc" />
-שאילתא 6
+```
+</details>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/547d02df-b741-4546-99f7-2412ed9734cc" width="700">
+</p>
+
+---
+
+#### 📝 שאילתה 6: התראות ציוד שלא הוחזר (משתתפים בוגרים)
+**תיאור:** איתור משתתפים (18+) בטיולים שהסתיימו, שהציוד שהוקצה עבורם טרם הוחזר.
+
+<details>
+<summary><b>לחצי לצפייה בקוד</b></summary>
+
+```sql
 SELECT P.FirstName, P.LastName, P.Phone, T.TripName, EQ.ItemName, TE.Checkout_Date
 FROM PARTICIPANT P
 JOIN REGISTERS_TO R ON P.ParticipantID = R.ParticipantID
@@ -363,9 +439,22 @@ JOIN EQUIPMENT EQ ON TE.EquipmentID = EQ.EquipmentID
 WHERE EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM P.birthday) >= 18
   AND TE.Return_Date IS NULL
   AND T.EndDate < CURRENT_DATE;
+```
+</details>
 
-<img width="1342" height="299" alt="image" src="https://github.com/user-attachments/assets/ca04e1bd-ee01-4870-b74d-5aa16e2c2d77" />
-שאילתא 7
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ca04e1bd-ee01-4870-b74d-5aa16e2c2d77" width="700">
+</p>
+
+---
+
+#### 📝 שאילתה 7: סטטיסטיקה חודשית לטיולים
+**תיאור:** הפקת דו"ח המקבץ את הטיולים לפי חודש ושנה, ומציג את כמות הטיולים הכללית ואת גודל הקבוצה הממוצע.
+
+<details>
+<summary><b>לחצי לצפייה בקוד</b></summary>
+
+```sql
 SELECT EXTRACT(YEAR FROM StartDate) AS TripYear,
        EXTRACT(MONTH FROM StartDate) AS TripMonth,
        COUNT(TripID) AS NumberOfTrips,
@@ -373,8 +462,22 @@ SELECT EXTRACT(YEAR FROM StartDate) AS TripYear,
 FROM TRIP
 GROUP BY EXTRACT(YEAR FROM StartDate), EXTRACT(MONTH FROM StartDate)
 ORDER BY TripYear DESC, TripMonth DESC;
-<img width="656" height="348" alt="image" src="https://github.com/user-attachments/assets/3dcbf101-560e-4326-a35e-413740c2bf7b" />
-שאילתא 8
+```
+</details>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/3dcbf101-560e-4326-a35e-413740c2bf7b" width="600">
+</p>
+
+---
+
+#### 📝 שאילתה 8: שלושת המיקומים העמוסים ביותר
+**תיאור:** זיהוי 3 המיקומים הפופולריים ביותר על פי ספירת הטיולים והמשתתפים המבקרים בהם.
+
+<details>
+<summary><b>לחצי לצפייה בקוד</b></summary>
+
+```sql
 SELECT L.LocationName, L.Region, 
        COUNT(DISTINCT LT.TripID) AS TripsVisiting,
        COUNT(DISTINCT R.ParticipantID) AS TotalParticipants
@@ -384,67 +487,143 @@ JOIN REGISTERS_TO R ON LT.TripID = R.TripID
 GROUP BY L.LocationID, L.LocationName, L.Region
 ORDER BY TripsVisiting DESC, TotalParticipants DESC
 LIMIT 3;
-<img width="819" height="225" alt="image" src="https://github.com/user-attachments/assets/014109b6-efe3-4810-aaa4-41fdce9b0792" />
-עדכון
-שאילתא 1 לפני 
-<img width="944" height="279" alt="image" src="https://github.com/user-attachments/assets/fd24645b-27c7-4be8-903e-22e194ea022a" />
-אחרי <img width="970" height="325" alt="image" src="https://github.com/user-attachments/assets/da1dbf48-6914-4bdc-8adf-5bb03e399189" />
+```
+</details>
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/014109b6-efe3-4810-aaa4-41fdce9b0792" width="700">
+</p>
 
-לפני שאילתא 2 <img width="1018" height="245" alt="image" src="https://github.com/user-attachments/assets/b89329d0-6d86-43af-8dd4-71082694947a" />
+---
 
-אחרי שאילתה 2 <img width="1009" height="250" alt="image" src="https://github.com/user-attachments/assets/d8cc38ee-4a7f-4958-9f2f-aee9e02b775e" />
-לפני שאילתה 3 <img width="1126" height="192" alt="image" src="https://github.com/user-attachments/assets/5bbbeeaa-b240-41a7-8b19-103aa60395de" />
- 
-אחרי שאילתה 3 <img width="1116" height="186" alt="image" src="https://github.com/user-attachments/assets/0c8bd4ac-821b-4194-b216-8734b4cc63e6" />
+### 🔹 3. פעולות עדכון (UPDATE)
+פעולות לעדכון נתונים במערכת.
 
-מחיקה
-שאילתה 1 לפני <img width="695" height="247" alt="image" src="https://github.com/user-attachments/assets/907a0311-7cd7-4814-bc14-255deb40bf51" />
-אחרי
-שאילתה 2 לפני <img width="313" height="212" alt="image (7)" src="https://github.com/user-attachments/assets/ffac75eb-6d32-42c7-81d5-7bac3fffd25a" />
+#### עדכון 1:
+<p align="center">
+  <b>לפני העדכון:</b><br>
+  <img src="https://github.com/user-attachments/assets/fd24645b-27c7-4be8-903e-22e194ea022a" width="600"><br>
+  <b>אחרי העדכון:</b><br>
+  <img src="https://github.com/user-attachments/assets/da1dbf48-6914-4bdc-8adf-5bb03e399189" width="600">
+</p>
 
-אחרי <img width="412" height="264" alt="image" src="https://github.com/user-attachments/assets/df2c1134-f54a-4fe7-a7b6-7fe8f8885db5" />
+#### עדכון 2:
+<p align="center">
+  <b>לפני העדכון:</b><br>
+  <img src="https://github.com/user-attachments/assets/b89329d0-6d86-43af-8dd4-71082694947a" width="600"><br>
+  <b>אחרי העדכון:</b><br>
+  <img src="https://github.com/user-attachments/assets/d8cc38ee-4a7f-4958-9f2f-aee9e02b775e" width="600">
+</p>
 
-שאילתא 3 לפני <img width="1021" height="293" alt="image" src="https://github.com/user-attachments/assets/c4b4ef8d-246f-477c-990b-a9d43e3e5dc4" />
+#### עדכון 3:
+<p align="center">
+  <b>לפני העדכון:</b><br>
+  <img src="https://github.com/user-attachments/assets/5bbbeeaa-b240-41a7-8b19-103aa60395de" width="600"><br>
+  <b>אחרי העדכון:</b><br>
+  <img src="https://github.com/user-attachments/assets/0c8bd4ac-821b-4194-b216-8734b4cc63e6" width="600">
+</p>
 
-אחרי <img width="1069" height="286" alt="image" src="https://github.com/user-attachments/assets/f36ff431-91f3-4dd1-b8c5-76d501ecabb9" />
+---
 
-ROLLBACK ו BEGIN לפני מחיקה אחרי ROLLBAK ותיעוד שחזר
-<img width="786" height="301" alt="image" src="https://github.com/user-attachments/assets/f5446365-8115-4e6f-a41a-d8af5bff5366" />
-<img width="581" height="268" alt="image" src="https://github.com/user-attachments/assets/40154fdb-ff62-4fe5-8a00-215c7934f7b4" />
-<img width="725" height="214" alt="image" src="https://github.com/user-attachments/assets/16bb32be-039c-44cb-979b-3334ea12525f" />
+### 🔹 4. פעולות מחיקה (DELETE)
 
-<img width="860" height="367" alt="image" src="https://github.com/user-attachments/assets/4d7ce6d6-4661-4e19-9d5e-d0ccc4028915" />
-ROLLBACK ו BEGIN לפני UPDATE וCOMMIT אחרי ROLLBAK ותיעוד שחזר
-<img width="1160" height="292" alt="image" src="https://github.com/user-attachments/assets/5a9cdff3-f0be-439a-89b1-4cf50e7d1c92" />
-<img width="688" height="269" alt="image" src="https://github.com/user-attachments/assets/39d51241-0bc1-4c52-b3be-f1a16710ff9b" />
-<img width="983" height="248" alt="image" src="https://github.com/user-attachments/assets/0a5b849a-65fc-410e-a214-eafc60eed0ca" />
-<img width="1153" height="290" alt="image" src="https://github.com/user-attachments/assets/b38a0cfb-40eb-4cf8-82c9-cbb7d56b0fbf" />
-<img width="1143" height="292" alt="image" src="https://github.com/user-attachments/assets/2a800e43-3325-459e-8dbe-02fbdd4997e5" />
-אילוץ 1
-<img width="761" height="279" alt="image" src="https://github.com/user-attachments/assets/a3efcd43-5d7a-458c-8d99-8b7f8f280bac" />
-<img width="756" height="268" alt="image" src="https://github.com/user-attachments/assets/ef86d042-1677-464f-b698-1d430187e2a6" />
-אילוץ 2 
-<img width="1007" height="319" alt="image" src="https://github.com/user-attachments/assets/a4ee74bf-a02d-4a2d-9ebb-0874631a5364" />
-<img width="731" height="228" alt="image" src="https://github.com/user-attachments/assets/536cc2e8-3db5-47cb-8194-456860445f8a" />
+#### מחיקה 1:
+<p align="center">
+  <b>לפני המחיקה:</b><br>
+  <img src="https://github.com/user-attachments/assets/907a0311-7cd7-4814-bc14-255deb40bf51" width="500">
+</p>
 
-אילוץ 3 
-<img width="1161" height="214" alt="image" src="https://github.com/user-attachments/assets/2d84d988-7183-4c4c-a2d9-a313eef4231a" />
-<img width="720" height="233" alt="image" src="https://github.com/user-attachments/assets/bdd1e5d1-95e0-485d-9cba-3e1844fa2ff1" />
+#### מחיקה 2:
+<p align="center">
+  <b>לפני המחיקה:</b><br>
+  <img src="https://github.com/user-attachments/assets/ffac75eb-6d32-42c7-81d5-7bac3fffd25a" width="400"><br>
+  <b>אחרי המחיקה:</b><br>
+  <img src="https://github.com/user-attachments/assets/df2c1134-f54a-4fe7-a7b6-7fe8f8885db5" width="400">
+</p>
 
-אינדקס 1 לפני ואחרי
-<img width="772" height="665" alt="image" src="https://github.com/user-attachments/assets/db0b273e-a21a-4f7f-ac5a-561cdaa90b6f" />
-<img width="709" height="546" alt="image" src="https://github.com/user-attachments/assets/fe380ced-bd03-4022-b6e2-d07b139924cd" />
-<img width="692" height="260" alt="image" src="https://github.com/user-attachments/assets/63e84279-adb3-4464-87ae-94112a438361" />
-אינדקס 2 לפני ואחרי 
-<img width="603" height="618" alt="image" src="https://github.com/user-attachments/assets/0740d548-fcee-4bb4-ac5d-5111b09ef126" />
-<img width="639" height="577" alt="image" src="https://github.com/user-attachments/assets/5cf79126-caaf-424e-b984-8faefae282f9" />
-<img width="659" height="176" alt="image" src="https://github.com/user-attachments/assets/70503422-f057-44f1-97fb-4ea1c596a989" />
-אינדקס 3 לפני ואחרי 
-<img width="583" height="63" alt="image" src="https://github.com/user-attachments/assets/5a1bb265-69f4-4365-83cd-e119c6b1946e" />
-<img width="599" height="67" alt="image" src="https://github.com/user-attachments/assets/ca107158-6674-45ce-a657-4099d76d991c" />
+#### מחיקה 3:
+<p align="center">
+  <b>לפני המחיקה:</b><br>
+  <img src="https://github.com/user-attachments/assets/c4b4ef8d-246f-477c-990b-a9d43e3e5dc4" width="600"><br>
+  <b>אחרי המחיקה:</b><br>
+  <img src="https://github.com/user-attachments/assets/f36ff431-91f3-4dd1-b8c5-76d501ecabb9" width="600">
+</p>
 
-<img width="683" height="134" alt="image" src="https://github.com/user-attachments/assets/be9bfcf3-6652-4146-a11e-40d0da9e293b" />
+---
 
+### 🔹 5. טרנזקציות (ROLLBACK & COMMIT)
 
+#### ROLLBACK (ביטול פעולת מחיקה):
+<p align="center">
+  <b>לפני המחיקה:</b><br>
+  <img src="https://github.com/user-attachments/assets/f5446365-8115-4e6f-a41a-d8af5bff5366" width="500"><br>
+  <b>המחיקה (בתוך BEGIN):</b><br>
+  <img src="https://github.com/user-attachments/assets/40154fdb-ff62-4fe5-8a00-215c7934f7b4" width="500"><br>
+  <b>פעולת ה-ROLLBACK:</b><br>
+  <img src="https://github.com/user-attachments/assets/16bb32be-039c-44cb-979b-3334ea12525f" width="500"><br>
+  <b>הנתונים חזרו:</b><br>
+  <img src="https://github.com/user-attachments/assets/4d7ce6d6-4661-4e19-9d5e-d0ccc4028915" width="500">
+</p>
 
+#### COMMIT (שמירת עדכון):
+<p align="center">
+  <b>לפני העדכון:</b><br>
+  <img src="https://github.com/user-attachments/assets/5a9cdff3-f0be-439a-89b1-4cf50e7d1c92" width="500"><br>
+  <b>ביצוע העדכון (בתוך BEGIN):</b><br>
+  <img src="https://github.com/user-attachments/assets/39d51241-0bc1-4c52-b3be-f1a16710ff9b" width="500"><br>
+  <b>פעולת ה-COMMIT:</b><br>
+  <img src="https://github.com/user-attachments/assets/0a5b849a-65fc-410e-a214-eafc60eed0ca" width="500"><br>
+  <b>הנתונים נשמרו:</b><br>
+  <img src="https://github.com/user-attachments/assets/b38a0cfb-40eb-4cf8-82c9-cbb7d56b0fbf" width="500"><br>
+  <img src="https://github.com/user-attachments/assets/2a800e43-3325-459e-8dbe-02fbdd4997e5" width="500">
+</p>
+
+---
+
+### 🔹 6. אילוצים (Constraints)
+
+#### אילוץ 1:
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a3efcd43-5d7a-458c-8d99-8b7f8f280bac" width="500"><br>
+  <img src="https://github.com/user-attachments/assets/ef86d042-1677-464f-b698-1d430187e2a6" width="500">
+</p>
+
+#### אילוץ 2:
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a4ee74bf-a02d-4a2d-9ebb-0874631a5364" width="500"><br>
+  <img src="https://github.com/user-attachments/assets/536cc2e8-3db5-47cb-8194-456860445f8a" width="500">
+</p>
+
+#### אילוץ 3:
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/2d84d988-7183-4c4c-a2d9-a313eef4231a" width="500"><br>
+  <img src="https://github.com/user-attachments/assets/bdd1e5d1-95e0-485d-9cba-3e1844fa2ff1" width="500">
+</p>
+
+---
+
+### 🔹 7. אינדקסים (Indexes) לשיפור ביצועים
+
+#### אינדקס 1:
+<p align="center">
+  <b>לפני ואחרי בניית האינדקס:</b><br>
+  <img src="https://github.com/user-attachments/assets/db0b273e-a21a-4f7f-ac5a-561cdaa90b6f" width="500"><br>
+  <img src="https://github.com/user-attachments/assets/fe380ced-bd03-4022-b6e2-d07b139924cd" width="500"><br>
+  <img src="https://github.com/user-attachments/assets/63e84279-adb3-4464-87ae-94112a438361" width="500">
+</p>
+
+#### אינדקס 2:
+<p align="center">
+  <b>לפני ואחרי בניית האינדקס:</b><br>
+  <img src="https://github.com/user-attachments/assets/0740d548-fcee-4bb4-ac5d-5111b09ef126" width="400"><br>
+  <img src="https://github.com/user-attachments/assets/5cf79126-caaf-424e-b984-8faefae282f9" width="400"><br>
+  <img src="https://github.com/user-attachments/assets/70503422-f057-44f1-97fb-4ea1c596a989" width="400">
+</p>
+
+#### אינדקס 3:
+<p align="center">
+  <b>לפני ואחרי בניית האינדקס:</b><br>
+  <img src="https://github.com/user-attachments/assets/5a1bb265-69f4-4365-83cd-e119c6b1946e" width="500"><br>
+  <img src="https://github.com/user-attachments/assets/ca107158-6674-45ce-a657-4099d76d991c" width="500"><br>
+  <img src="https://github.com/user-attachments/assets/be9bfcf3-6652-4146-a11e-40d0da9e293b" width="500">
+</p>
