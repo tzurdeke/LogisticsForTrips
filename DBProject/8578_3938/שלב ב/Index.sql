@@ -15,7 +15,7 @@ CREATE INDEX idx_location_region ON LOCATION(Region);
 
 -- *** אינדקס 2: על שם משפחה של משתתפים ***
 -- להריץ לפני בניית האינדקס ולצלם זמנים:
-SELECT * FROM PARTICIPANT WHERE LastName LIKE 'S%';
+SELECT * FROM PARTICIPANT WHERE LastName LIKE 'P%';
 
 CREATE INDEX idx_participant_lastname ON PARTICIPANT(LastName);
 -- להריץ שוב את השאילתה מלמעלה ולצלם זמנים!

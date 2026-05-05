@@ -24,8 +24,8 @@ try:
     print("Successfully connected to the database!")
     print("Starting massive native insertion (this will take a few seconds...)")
 
-    # ניצור מזהים גבוהים (מעל 2000) כדי למנוע התנגשויות בהרצה פשוטה על מסד קיים
-    OFFSET = 3000
+    # מכיוון שיצרת את הטבלאות מחדש, נתחיל את המזהים מ-0
+    OFFSET = 0
     
     # 1. TRIP (500)
     print("Inserting 500 into TRIP...")
