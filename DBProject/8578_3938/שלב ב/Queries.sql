@@ -4,20 +4,16 @@
 
 -- Query 1 (Way 1): Find participants registered for trips starting in summer 2026.
 -- Method 1: Using JOIN. Modern SQL engines optimize these queries well.
-SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email, T.TripName, 
-       EXTRACT(DAY FROM T.StartDate) AS StartDay, 
-       EXTRACT(MONTH FROM T.StartDate) AS StartMonth, 
-       EXTRACT(YEAR FROM T.StartDate) AS StartYear
+SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email
 FROM PARTICIPANT P
 JOIN REGISTERS_TO R ON P.ParticipantID = R.ParticipantID
 JOIN TRIP T ON R.TripID = T.TripID
 WHERE EXTRACT(YEAR FROM T.StartDate) = 2026 
   AND EXTRACT(MONTH FROM T.StartDate) IN (6, 7, 8)
-ORDER BY T.StartDate, P.LastName;
+ORDER BY P.LastName;
 
 -- Query 1 (Way 2): Same query using a subquery with IN.
 -- Efficiency note: IN subqueries might be less efficient in older engines.
--- Additionally, we cannot select columns from the TRIP table in the final output.
 SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email
 FROM PARTICIPANT P
 WHERE P.ParticipantID IN (
