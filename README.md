@@ -250,24 +250,31 @@
 <a name="שלב-ב"></a>
 ## 🚀 שלב ב' - בניית מסד הנתונים ושאילתות (SQL)
 
+**תוכן עניינים פנימי - שלב ב':**
+* [שאילתות אחזור נתונים (SELECT)](#שאילתות-אחזור-נתונים-select)
+* [שאילתות עדכון (UPDATE)](#שאילתות-עדכון-update)
+* [שאילתות מחיקה (DELETE)](#שאילתות-מחיקה-delete)
+* [Rollback ו-Commit](#rollback-ו-commit)
+* [אילוצים (Constraints)](#אילוצים-constraints)
+* [אינדקסים (Indexes)](#אינדקסים-indexes)
+
+---
 ### שאילתות אחזור נתונים (SELECT)
 
 #### שאילתה 1: מציאת משתתפים שנרשמו לטיולי קיץ 2026
 **תיאור השאילתה:** מציאת פרטי משתתפים שנרשמו לטיולים שמתחילים בקיץ (יוני, יולי, אוגוסט) של שנת 2026.
-**הבדלי יעילות בין השיטות:** שיטה 1 (JOIN) לרוב תהיה יעילה יותר שכן מנועי SQL מודרניים מייעלים אותה היטב. לעומת זאת, תתי שאילתות עם IN (שיטה 2) עלולות להיות פחות יעילות במנועים מסוימים כי המנוע עשוי להריץ את תת-השאילתה עבור כל שורה בטבלה החיצונית. בנוסף, בשיטה 2 לא ניתן לשלוף עמודות מטבלת TRIP לתוצאה הסופית.
+**הבדלי יעילות בין השיטות:** שיטה 1 (JOIN) לרוב תהיה יעילה יותר שכן מנועי SQL מודרניים מייעלים אותה היטב. לעומת זאת, תתי שאילתות עם IN (שיטה 2) עלולות להיות פחות יעילות במנועים מסוימים כי המנוע עשוי להריץ את תת-השאילתה עבור כל שורה בטבלה החיצונית. 
+(הערה: כדי שההשוואה בין שתי השיטות תהיה אמינה והוגנת, שתיהן נכתבו כך שיחזירו בדיוק את אותן עמודות ואותן שורות. מכיוון ששימוש בתת שאילתה עם IN מגביל אותנו לשליפת עמודות ומיון על סמך הטבלה החיצונית בלבד, התאמנו את שתי השאילתות כך שיחזירו וימיינו רק לפי פרטי המשתתף).
 
 **קוד השאילתה (שיטה 1 - JOIN):**
 ```sql
-SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email, T.TripName, 
-       EXTRACT(DAY FROM T.StartDate) AS StartDay, 
-       EXTRACT(MONTH FROM T.StartDate) AS StartMonth, 
-       EXTRACT(YEAR FROM T.StartDate) AS StartYear
+SELECT P.ParticipantID, P.FirstName, P.LastName, P.Email
 FROM PARTICIPANT P
 JOIN REGISTERS_TO R ON P.ParticipantID = R.ParticipantID
 JOIN TRIP T ON R.TripID = T.TripID
 WHERE EXTRACT(YEAR FROM T.StartDate) = 2026 
   AND EXTRACT(MONTH FROM T.StartDate) IN (6, 7, 8)
-ORDER BY T.StartDate, P.LastName;
+ORDER BY P.LastName;
 ```
 
 **צילום הרצה ותוצאה (שיטה 1):**
@@ -520,12 +527,25 @@ WHERE Return_Date IS NULL
   );
 ```
 
-**צילום מצב בסיס הנתונים לפני העדכון:**
+**קוד שאילתת הבדיקה (אותה מריצים לפני ואחרי העדכון כדי לראות את השינוי):**
+```sql
+SELECT * FROM TRIP_EQUIPMENT 
+WHERE Return_Date IS NULL 
+  AND EXISTS (
+      SELECT 1 FROM TRIP 
+      WHERE TRIP.TripID = TRIP_EQUIPMENT.TripID 
+        AND EndDate < CURRENT_DATE
+        AND EndDate >= '2025-01-01'
+  );
+```
+
+**צילום מצב בסיס הנתונים לפני העדכון:** 
 <p align="center">
 <img src="https://github.com/user-attachments/assets/fd24645b-27c7-4be8-903e-22e194ea022a" width="600">
 </p>
 
-**צילום הרצת פקודת העדכון + צילום מצב אחרי:**
+**צילום הרצת פקודת העדכון + צילום מצב אחרי:** 
+*(הערה: צילום המסך של ה"אחרי" מציג טבלה ריקה מכיוון שזוהי תוצאת הרצת שאילתת הבדיקה (המחפשת `Return_Date IS NULL`) לאחר ביצוע העדכון. העובדה שהשאילתה לא מחזירה אף רשומה מהווה את ההוכחה לכך שפקודת ה-UPDATE עבדה, ואין יותר ציוד שטרם הוחזר בטיולי העבר).*
 <p align="center">
 <img src="https://github.com/user-attachments/assets/da1dbf48-6914-4bdc-8adf-5bb03e399189" width="600">
 </p>
@@ -718,8 +738,10 @@ ALTER TABLE LOCATION ADD CONSTRAINT chk_address_length CHECK (LENGTH(Address) >=
 <p align="center">
 <img width="761" height="279" alt="image" src="https://github.com/user-attachments/assets/a3efcd43-5d7a-458c-8d99-8b7f8f280bac" />
 <br>
-<img width="756" height="268" alt="image" src="https://github.com/user-attachments/assets/ef86d042-1677-464f-b698-1d430187e2a6" />
+
 </p>
+<img width="1230" height="287" alt="image" src="https://github.com/user-attachments/assets/0a8075c1-1cec-4a34-80f6-b758274da563" />
+
 
 ### אילוץ 2: ייחודיות שם פריט ציוד
 **תיאור:** הוספנו אילוץ `UNIQUE` על עמודת `ItemName` בטבלת `EQUIPMENT`.
@@ -732,9 +754,10 @@ ALTER TABLE EQUIPMENT ADD CONSTRAINT unq_itemname UNIQUE (ItemName);
 
 **צילום מסך של שגיאת המערכת בעת ניסיון להפר את האילוץ:**
 <p align="center">
-<img width="1007" height="319" alt="image" src="https://github.com/user-attachments/assets/a4ee74bf-a02d-4a2d-9ebb-0874631a5364" />
-<br>
 <img width="731" height="228" alt="image" src="https://github.com/user-attachments/assets/536cc2e8-3db5-47cb-8194-456860445f8a" />
+
+<br>
+<img width="1007" height="319" alt="image" src="https://github.com/user-attachments/assets/a4ee74bf-a02d-4a2d-9ebb-0874631a5364" />
 </p>
 
 ### אילוץ 3: פורמט כתובת אימייל
@@ -748,9 +771,10 @@ ALTER TABLE PARTICIPANT ADD CONSTRAINT chk_email_format CHECK (Email LIKE '%@%')
 
 **צילום מסך של שגיאת המערכת בעת ניסיון להפר את האילוץ:**
 <p align="center">
-<img width="1161" height="214" alt="image" src="https://github.com/user-attachments/assets/2d84d988-7183-4c4c-a2d9-a313eef4231a" />
-<br>
 <img width="720" height="233" alt="image" src="https://github.com/user-attachments/assets/bdd1e5d1-95e0-485d-9cba-3e1844fa2ff1" />
+<br>
+  
+<img width="1161" height="214" alt="image" src="https://github.com/user-attachments/assets/2d84d988-7183-4c4c-a2d9-a313eef4231a" />
 </p>
 
 ---
