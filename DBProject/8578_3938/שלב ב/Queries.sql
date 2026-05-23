@@ -132,7 +132,6 @@ WHERE EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM P.birthday) >= 18
   AND TE.Return_Date IS NULL
   AND T.EndDate < CURRENT_DATE;
 
-
 -- Query 7: Monthly report - Year, Month, number of trips starting, and average group size.
 SELECT EXTRACT(YEAR FROM StartDate) AS TripYear,
        EXTRACT(MONTH FROM StartDate) AS TripMonth,

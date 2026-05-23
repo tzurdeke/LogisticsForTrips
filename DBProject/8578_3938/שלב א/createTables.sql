@@ -12,8 +12,6 @@ CREATE TABLE TRIP
   CHECK (EndDate >= StartDate),
   CHECK (GroupSize > 0)
 );
-
-
 CREATE TABLE LOCATION
 (
   LocationID INT NOT NULL,
