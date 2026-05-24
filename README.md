@@ -862,22 +862,14 @@ CREATE INDEX idx_trip_startdate ON TRIP(StartDate);
 ### 📊 1. תרשימי ERD ו-DSD של האגף החדש והמודל המאוחד
 
 #### 🔹 תרשים ERD - אגף חדש (הפרויקט השני)
-<p align="center">
-  <!-- הדביקי כאן קישור לתמונת ה-ERD של האגף החדש -->
-  <img src="נתיב_לתמונת_ERD_אגף_חדש" alt="ERD אגף חדש" width="700">
-</p>
+<img width="1707" height="897" alt="image" src="https://github.com/user-attachments/assets/d34ce6ec-ea9b-4dd6-af10-899fd4d90cac" />
 
 #### 🔹 תרשים DSD - אגף חדש (הפרויקט השני)
-<p align="center">
-  <!-- הדביקי כאן קישור לתמונת ה-DSD של האגף החדש -->
-  <img src="נתיב_לתמונת_DSD_אגף_חדש" alt="DSD אגף חדש" width="700">
-</p>
+<img width="1005" height="1188" alt="Untitled" src="https://github.com/user-attachments/assets/a7ac90ee-7380-4a07-829f-4d8889e6c12b" />
 
 #### 🔹 תרשים ERD משותף (Combined ERD)
-<p align="center">
-  <!-- הדביקי כאן קישור לתמונת ה-ERD המשותף לאחר האינטגרציה -->
-  <img src="נתיב_לתמונת_ERD_משותף" alt="ERD משותף" width="700">
-</p>
+<img width="5664" height="2478" alt="erdplus (3)" src="https://github.com/user-attachments/assets/7761bfc6-d4c8-4842-b924-f7a2dfab021c" />
+
 
 #### 🔹 תרשים DSD לאחר אינטגרציה (Combined DSD)
 <p align="center">
@@ -889,13 +881,20 @@ CREATE INDEX idx_trip_startdate ON TRIP(StartDate);
 
 ### 🧠 2. החלטות שנעשו בשלב האינטגרציה
 
-1. **שמירה על מבנה קיים**: כל הישויות שלנו (כגון `Trip`, `Participant`, `Equipment`, `Supplier`, `Location`, `Transportation`) נשמרו במלואן יחד עם קשרי הגומלין.
-2. **הוספת ישויות הזוג השני**: התווספו הישויות `GUIDE`, `GROUP`, `EVENT`, `EVENTREGISTRATION` על תכונותיהן.
-3. **מיזוג ישויות חופפות**:
-   * לישות ה-`TRIP` יתאפשר להוסיף מפתח זר למדריך (`GuideId`) שמנהל את הטיול.
-   * לישות ה-`PARTICIPANT` הוספנו עמודת `Age` על מנת לאפשר קליטת נתונים מהפרויקט השני, תוך שמירה על עמודת `birthday` המקורית והמדויקת יותר.
-4. **מבנה הרשמה גמיש**: מטיילים יכולים כעת להירשם לטיול גם באופן ישיר כיחידים (דרך `REGISTERS_TO` המקורית), וגם כחלק מקבוצה מאורגנת שרשומה לטיול (דרך המבנה של הזוג השני).
-5. **קשר מדריך-ציוד**: הוספנו קשר Many-to-Many בין `GUIDE` ל-`Equipment` (הקשר Uses) המאפשר ניהול והקצאת ציוד ישירות למדריכים.
+1. **שמירה על מבנה שתי המערכות**: כלל הטבלאות המקוריות משני הפרויקטים נשמרו כדי למנוע פגיעה בפונקציונליות הקיימת.
+2. **מניעת התנגשויות מפתחות ראשיים (Primary Keys)**: הוחלט להוסיף הזחה (Offset) של `1,000,000` לכל המזהים (`ID`) המיובאים מהקבוצה השנייה בטבלאות המשותפות שמוזגו (`PARTICIPANT`, `TRIP`, `LOCATION`).
+3. **מיזוג ישויות חופפות והתאמת מבנה**:
+   * **טבלת `TRIP` המאוחדת**: התווספה עמודת `GuideId` לקשר בין הטיולים המאוחדים למדריכים מהפרויקט השני.
+   * **טבלת `PARTICIPANT` המאוחדת**: התווספה עמודת `Age` עבור המטיילים מהפרויקט השני, תוך שמירה על עמודת `birthday` למטיילים שלנו.
+4. **טיפול באי-תאימות אילוצים (Constraints Nullability)**:
+   * העמודות `birthday` ו-`Phone` בטבלת `PARTICIPANT` המאוחדת שונו ל-`NULL` (ביטול אילוץ `NOT NULL`), מכיוון שבנתוני הקבוצה השנייה שדות אלו אינם קיימים או שהם אופציונליים.
+   * העמודה `Trip_Type` בטבלת `TRIP` המאוחדת שונתה גם היא ל-`NULL` מאותה סיבה.
+5. **פתרון התנגשות אילוצי ייחודיות (Unique Constraints)**:
+   * למניעת כשל בייבוא עקב אימיילים כפולים (שכן קיים אילוץ `UNIQUE` על שדה ה-`Email` בטבלת המשתתפים), הוחלט להוסיף סיומת `_peer` לכתובות האימייל המיובאות מהקבוצה השנייה.
+6. **הרחבת טיפוסים (Data Types)**:
+   * שדה ה-`Email` הורחב ל-`VARCHAR(100)` ושדה `Trip_Type` הורחב ל-`VARCHAR(50)` כדי להתאים לאורכי הנתונים של הקבוצה השנייה ולמנוע שגיאות חריגת אורך.
+7. **שיוך מחדש של קשרים בטבלאות הבנות**:
+   * עדכון מזהי הטיולים והמיקומים בטבלאות האירועים וההרשמות של הקבוצה השנייה (`event`, `participantgroup`, `grouptrip`) בהתאם להזחה של ה-`1,000,000`, וקישורן מחדש לטבלאות הממוזגות באמצעות מפתחות זרים (`Foreign Keys`).
 
 ---
 
@@ -939,10 +938,7 @@ ALTER TABLE our_trip ALTER COLUMN Trip_Type TYPE VARCHAR(50);
 #### 📍 שלב 2.5: הרצת קובץ הגיבוי ויצירת הטבלאות של הקבוצה השנייה
 בשלב זה מריצים את הגיבוי של הקבוצה השנייה המייצר את הטבלאות שלהן בבסיס הנתונים.
 *צילום מסך של הרצת הגיבוי וטעינת הנתונים ב-pgAdmin:*
-<p align="center">
-  <!-- הדביקי כאן צילום מסך של טעינת הגיבוי של קבוצה 2 -->
-  <img src="נתיב_לתמונה_גיבוי_קבוצה2" alt="שלב 2.5 - טעינת גיבוי קבוצה 2" width="700">
-</p>
+<img width="367" height="534" alt="image" src="https://github.com/user-attachments/assets/3fdadf9c-cc2c-467f-8457-3843fea59090" />
 
 #### 📍 שלב 3: העתקת הנתונים שלהן לטבלאות שלנו עם היסט (Offset) של 1,000,000
 העתקת המשתתפים (תוך פתרון ייחודיות אימייל ע"י הוספת סיומת `_peer`), המיקומים והטיולים לתוך הטבלאות המורחבות שלנו:
@@ -1081,99 +1077,14 @@ ALTER TABLE our_location RENAME TO LOCATION;
 *צילום מסך של הצלחת הרצת שלב 7 ב-pgAdmin:*
 <p align="center">
   <img width="1919" height="830" alt="Screenshot 2026-05-24 111017" src="https://github.com/user-attachments/assets/35d390cf-ed32-49ff-b2bc-88588c05835a" />
-  <br>
-  <img width="444" height="623" alt="image" src="https://github.com/user-attachments/assets/059a3189-8268-4e12-9acb-2cb84ccfab90" />
 </p>
 
 #### 📊 תמונת מצב סופית (Tables List)
 *צילום מסך של רשימת הטבלאות הסופית (16 טבלאות) הממוזגות והנקיות ב-pgAdmin:*
 <p align="center">
-  <!-- הדביקי כאן צילום מסך של רשימת הטבלאות הסופית -->
-  <img src="נתיב_לתמונת_רשימת_טבלאות_סופית" alt="רשימת טבלאות סופית" width="500">
+  <img width="444" height="623" alt="image" src="https://github.com/user-attachments/assets/059a3189-8268-4e12-9acb-2cb84ccfab90" />
 </p>
 
----
-
-### 👁️ 4. פקודות ליצירת המבטים והשאילתות (Views.sql)
-
-המבטים והשאילתות נכתבו בקובץ `Views.sql`. להלן התיעוד וההסבר שלהם:
-
-#### 🔹 מבט 1: `Trip_Guide_Logistics_View`
-* **תיאור מילולי:** מבט המרכז את פרטי הטיולים יחד עם המדריך האחראי עליהם. המבט משלב את טבלת `TRIP` עם טבלת `GUIDE` שנוספה באינטגרציה.
-* **קוד יצירת המבט:**
-  ```sql
-  CREATE OR REPLACE VIEW Trip_Guide_Logistics_View AS
-  SELECT 
-      T.TripID,
-      T.TripName,
-      T.StartDate,
-      T.EndDate,
-      T.GroupSize,
-      G.guideid AS Guide_ID,
-      G.GuideName AS Guide_Name,
-      G.Specialization AS Guide_Specialization
-  FROM TRIP T
-  LEFT JOIN guide G ON T.GuideId = G.guideid;
-  ```
-* **שליפת נתונים מהמבט (`SELECT *`):**
-  <p align="center">
-    <!-- הדביקי כאן צילום מסך של פלט השליפה Select * מהמבט הראשון -->
-    <img src="נתיב_לצילום_שליפת_נתונים_מבט1" alt="שליפת נתונים מבט 1" width="700">
-  </p>
-
-* **שאילתה על המבט:**
-  * **תיאור מילולי:** שליפת כל הטיולים שיש להם מדריך המומחה באזור מסוים או בעל התמחות ספציפית (לדוגמה 'Desert' או 'Hiking'), ממוין לפי תאריך התחלה.
-  * **קוד השאילתה:**
-    ```sql
-    SELECT TripID, TripName, StartDate, Guide_Name, Guide_Specialization
-    FROM Trip_Guide_Logistics_View
-    WHERE Guide_ID IS NOT NULL
-    ORDER BY StartDate;
-    ```
-  * **פלט השאילתה:**
-    <p align="center">
-      <!-- הדביקי כאן צילום מסך של פלט השאילתה מעל המבט הראשון -->
-      <img src="נתיב_לפלט_שאילתה_מבט1" alt="פלט שאילתה על מבט 1" width="700">
-    </p>
-
----
-
-#### 🔹 מבט 2: `Group_Participant_Summary_View`
-* **תיאור מילולי:** מבט המציג סיכום סטטיסטי עבור כל קבוצה (`Group`): מספר המטיילים הרשומים בה וממוצע הגילאים שלהם.
-* **קוד יצירת המבט:**
-  ```sql
-  CREATE OR REPLACE VIEW Group_Participant_Summary_View AS
-  SELECT 
-      GP.groupid AS Group_ID,
-      GP.GroupName AS Group_Name,
-      GP.CreatedDate AS Group_Created_Date,
-      COUNT(P.ParticipantID) AS Total_Participants,
-      ROUND(AVG(P.Age), 2) AS Average_Participant_Age
-  FROM "GROUP" GP
-  LEFT JOIN participantgroup PGS ON GP.groupid = PGS.groupid
-  LEFT JOIN PARTICIPANT P ON PGS.participantid = P.ParticipantID
-  GROUP BY GP.groupid, GP.GroupName, GP.CreatedDate;
-  ```
-* **שליפת נתונים מהמבט (`SELECT *`):**
-  <p align="center">
-    <!-- הדביקי כאן צילום מסך של פלט השליפה Select * מהמבט השני -->
-    <img src="נתיב_לצילום_שליפת_נתונים_מבט2" alt="שליפת נתונים מבט 2" width="700">
-  </p>
-
-* **שאילתה על המבט:**
-  * **תיאור מילולי:** שליפת קבוצות פעילות שיש בהן לפחות 2 משתתפים, וממוצע הגילאים של חברי הקבוצה נמוך מ-40 (קהל יעד צעיר/משפחות).
-  * **קוד השאילתה:**
-    ```sql
-    SELECT Group_ID, Group_Name, Total_Participants, Average_Participant_Age
-    FROM Group_Participant_Summary_View
-    WHERE Total_Participants >= 2 AND Average_Participant_Age < 40
-    ORDER BY Total_Participants DESC;
-    ```
-  * **פלט השאילתה:**
-    <p align="center">
-      <!-- הדביקי כאן צילום מסך של פלט השאילתה מעל המבט השני -->
-      <img src="נתיב_לפלט_שאילתה_מבט2" alt="פלט שאילתה על מבט 2" width="700">
-    </p>
 
 ---
 
