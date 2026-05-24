@@ -882,9 +882,8 @@ ALTER TABLE IF EXISTS TRIP RENAME TO our_trip;
 ALTER TABLE IF EXISTS LOCATION RENAME TO our_location;
 ```
 *צילום מסך של הצלחת הרצת שלב 1 ב-pgAdmin:*
-<p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 1" alt="שלב 1 - שינוי שם טבלאות" width="700">
-</p>
+<img width="1919" height="831" alt="Screenshot 2026-05-24 104550" src="https://github.com/user-attachments/assets/519e653a-8d09-4dc7-aea2-f32b8907fb4a" />
+
 
 ---
 
@@ -903,9 +902,10 @@ ALTER TABLE our_trip ALTER COLUMN Trip_Type DROP NOT NULL;
 ALTER TABLE our_trip ALTER COLUMN Trip_Type TYPE VARCHAR(50);
 ```
 *צילום מסך של הצלחת הרצת שלב 2 ב-pgAdmin:*
-<p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 2" alt="שלב 2 - התאמת מבנה הטבלאות" width="700">
-</p>
+<img width="1919" height="833" alt="Screenshot 2026-05-24 105208" src="https://github.com/user-attachments/assets/4877db92-06c6-42e8-a05b-830ccaf5ca4a" />
+<img width="1914" height="837" alt="Screenshot 2026-05-24 105321" src="https://github.com/user-attachments/assets/81160e44-b720-4ee1-a0a8-c98d0ddda1cc" />
+
+
 
 ---
 
@@ -937,6 +937,9 @@ SELECT
   NULL,
   age
 FROM participant;
+<img width="1436" height="385" alt="Screenshot 2026-05-24 105501" src="https://github.com/user-attachments/assets/a2a2f46b-2550-4d65-a3c6-540790db293c" />
+
+
 
 -- 2. העתקת מיקומים
 INSERT INTO our_location (LocationID, LocationName, Region, Address, Description)
@@ -947,6 +950,7 @@ SELECT
   address, 
   description
 FROM location;
+<img width="1917" height="841" alt="Screenshot 2026-05-24 105532" src="https://github.com/user-attachments/assets/7b2af42b-e61f-4483-a267-b43b8a6db748" />
 
 -- 3. העתקת טיולים
 INSERT INTO our_trip (TripID, TripName, StartDate, EndDate, GroupSize, Trip_Type, GuideId)
@@ -959,11 +963,9 @@ SELECT
   triptype,
   guideid
 FROM trip;
+<img width="1919" height="826" alt="Screenshot 2026-05-24 105649" src="https://github.com/user-attachments/assets/3b79bd32-6c57-4ef5-b56e-3c6710d6388c" />
+
 ```
-*צילום מסך של הצלחת הרצת שלב 3 ב-pgAdmin:*
-<p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 3" alt="שלב 3 - העתקת הנתונים עם היסט" width="700">
-</p>
 
 ---
 
@@ -975,9 +977,8 @@ DROP TABLE IF EXISTS trip CASCADE;
 DROP TABLE IF EXISTS location CASCADE;
 ```
 *צילום מסך של הצלחת הרצת שלב 4 ב-pgAdmin:*
-<p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 4" alt="שלב 4 - מחיקת טבלאות כפולות" width="700">
-</p>
+<img width="1919" height="834" alt="Screenshot 2026-05-24 105721" src="https://github.com/user-attachments/assets/932dbec0-05e5-4a7c-9139-b2cbce34baaa" />
+
 
 ---
 
@@ -987,17 +988,18 @@ DROP TABLE IF EXISTS location CASCADE;
 -- 1. עדכון טבלת אירועים (event)
 UPDATE event SET tripid = tripid + 1000000 WHERE tripid IS NOT NULL;
 UPDATE event SET locationid = locationid + 1000000;
+<img width="1919" height="843" alt="Screenshot 2026-05-24 105833" src="https://github.com/user-attachments/assets/90dc2abd-3890-4533-91a5-6152cb220cba" />
+
 
 -- 2. עדכון טבלת קשר משתתפים בקבוצה (participantgroup)
 UPDATE participantgroup SET participantid = participantid + 1000000;
+<img width="1919" height="787" alt="Screenshot 2026-05-24 110305" src="https://github.com/user-attachments/assets/458bf00e-4afd-432d-9e49-044035fa46ac" />
+
 
 -- 3. עדכון טבלת קשר קבוצות בטיול (grouptrip)
 UPDATE grouptrip SET tripid = tripid + 1000000;
-```
-*צילום מסך של הצלחת הרצת שלב 5 ב-pgAdmin:*
-<p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 5" alt="שלב 5 - עדכון מפתחות זרים בטבלאות בנות" width="700">
-</p>
+<img width="1919" height="831" alt="Screenshot 2026-05-24 110335" src="https://github.com/user-attachments/assets/29514ee4-287e-41df-a9b2-a79705b57966" />
+
 
 ---
 
@@ -1007,22 +1009,26 @@ UPDATE grouptrip SET tripid = tripid + 1000000;
 -- 1. קישור אירועים (event) לטיול ולמיקום הממוזגים
 ALTER TABLE event ADD CONSTRAINT fk_event_our_trip FOREIGN KEY (tripid) REFERENCES our_trip(TripID);
 ALTER TABLE event ADD CONSTRAINT fk_event_our_location FOREIGN KEY (locationid) REFERENCES our_location(LocationID);
+<img width="1913" height="835" alt="Screenshot 2026-05-24 110755" src="https://github.com/user-attachments/assets/06554914-d501-4ffb-80ee-637fa12afb81" />
+
 
 -- 2. קישור מפתחות זרים של participantgroup
 ALTER TABLE participantgroup ADD CONSTRAINT fk_pg_our_participant FOREIGN KEY (participantid) REFERENCES our_participant(ParticipantID);
 ALTER TABLE participantgroup ADD CONSTRAINT fk_pg_group FOREIGN KEY (groupid) REFERENCES "GROUP"(groupid);
+<img width="1919" height="834" alt="Screenshot 2026-05-24 110829" src="https://github.com/user-attachments/assets/1859a070-2d98-46d3-8fca-afe3cb85b195" />
+
 
 -- 3. קישור מפתחות זרים של grouptrip
 ALTER TABLE grouptrip ADD CONSTRAINT fk_gt_group FOREIGN KEY (groupid) REFERENCES "GROUP"(groupid);
 ALTER TABLE grouptrip ADD CONSTRAINT fk_gt_trip FOREIGN KEY (tripid) REFERENCES our_trip(TripID);
+<img width="1919" height="820" alt="Screenshot 2026-05-24 110857" src="https://github.com/user-attachments/assets/03d9ce7a-9bff-4467-9bbc-69cb4186e0a6" />
+
 
 -- 4. קישור הטיולים הממוזגים למדריכים
 ALTER TABLE our_trip ADD CONSTRAINT fk_trip_guide FOREIGN KEY (GuideId) REFERENCES guide(guideid);
+<img width="1916" height="832" alt="Screenshot 2026-05-24 110948" src="https://github.com/user-attachments/assets/40730dec-c690-4492-8b11-65e2c37edd92" />
+
 ```
-*צילום מסך של הצלחת הרצת שלב 6 ב-pgAdmin:*
-<p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 6" alt="שלב 6 - קישור מפתחות זרים חדשים" width="700">
-</p>
 
 ---
 
@@ -1034,9 +1040,10 @@ ALTER TABLE our_participant RENAME TO PARTICIPANT;
 ALTER TABLE our_location RENAME TO LOCATION;
 ```
 *צילום מסך של הצלחת הרצת שלב 7 ב-pgAdmin:*
-<p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 7" alt="שלב 7 - החזרת שמות מקוריים" width="700">
-</p>
+<img width="1919" height="830" alt="Screenshot 2026-05-24 111017" src="https://github.com/user-attachments/assets/35d390cf-ed32-49ff-b2bc-88588c05835a" />
+
+<img width="444" height="623" alt="image" src="https://github.com/user-attachments/assets/059a3189-8268-4e12-9acb-2cb84ccfab90" />
+
 
 ---
 
@@ -1045,4 +1052,6 @@ ALTER TABLE our_location RENAME TO LOCATION;
 <p align="center">
   <img src="נא להוסיף כאן קישור לצילום המסך של רשימת הטבלאות הסופית" alt="רשימת טבלאות סופית" width="500">
 </p>
+backup3:
+
 
