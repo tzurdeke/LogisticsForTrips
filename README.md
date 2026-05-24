@@ -24,6 +24,7 @@
 7. [📊 יצירת נתונים (CSV & Python)](#יצירת-נתונים)
 8. [💾 גיבוי (Backup)](#גיבוי)
 9. [🚀 שלב ב' - מסד הנתונים](#שלב-ב)
+10. [🔮 שלב ג' - אינטגרציה ומבטים](#אינטגרציה-עם-פרויקט-נוסף-שלב-ג)
 
 ---
 
@@ -866,3 +867,182 @@ CREATE INDEX idx_trip_startdate ON TRIP(StartDate);
 5. **קשר מדריך-ציוד**: הוספנו קשר Many-to-Many בין GUIDE ל-Equipment (הקשר Uses) המאפשר ניהול והקצאת ציוד ישירות למדריכים.
 
 קובץ ה-ERD המאוחד (Combined_TripERD.erdplus) ממוקם בתיקיית הפרויקט וניתן לטעינה ולצפייה באתר ERDPlus.
+
+---
+
+## 🛠️ תיעוד שלבי ביצוע ריצת סקריפט האינטגרציה
+
+להלן תיעוד מפורט של שלבי הרצת סקריפט האינטגרציה (`Integration.sql`) ב-**pgAdmin** למטרת מיזוג הנתונים ושילוב בסיסי הנתונים בצורה חלקה וחסינת שגיאות:
+
+### 📍 שלב 1: שינוי זמני של שמות הטבלאות המשותפות שלנו
+מטרת השלב היא מניעת התנגשויות שמות במערכת כאשר נטען את הגיבוי והטבלאות של הקבוצה השנייה.
+```sql
+ALTER TABLE IF EXISTS PARTICIPANT RENAME TO our_participant;
+ALTER TABLE IF EXISTS TRIP RENAME TO our_trip;
+ALTER TABLE IF EXISTS LOCATION RENAME TO our_location;
+```
+*צילום מסך של הצלחת הרצת שלב 1 ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 1" alt="שלב 1 - שינוי שם טבלאות" width="700">
+</p>
+
+---
+
+### 📍 שלב 2: התאמת המבנה של הטבלאות המקוריות שלנו
+הוספת שדות חסרים (כגון גיל ומפתח למדריך), הרחבת אורכי VARCHAR וביטול אילוצים (`NOT NULL`) המונעים שגיאות קליטה עקב הבדלים במודלים של שתי הקבוצות:
+```sql
+-- 1. התאמת PARTICIPANT
+ALTER TABLE our_participant ADD COLUMN IF NOT EXISTS Age INT CHECK (Age > 0);
+ALTER TABLE our_participant ALTER COLUMN birthday DROP NOT NULL;
+ALTER TABLE our_participant ALTER COLUMN Phone DROP NOT NULL;
+ALTER TABLE our_participant ALTER COLUMN Email TYPE VARCHAR(100);
+
+-- 2. התאמת TRIP
+ALTER TABLE our_trip ADD COLUMN IF NOT EXISTS GuideId INT;
+ALTER TABLE our_trip ALTER COLUMN Trip_Type DROP NOT NULL;
+ALTER TABLE our_trip ALTER COLUMN Trip_Type TYPE VARCHAR(50);
+```
+*צילום מסך של הצלחת הרצת שלב 2 ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 2" alt="שלב 2 - התאמת מבנה הטבלאות" width="700">
+</p>
+
+---
+
+### 📍 שלב 2.5: הרצת קובץ הגיבוי ויצירת הטבלאות של הקבוצה השנייה
+בשלב זה הורץ הגיבוי של הקבוצה השנייה המייצר את הטבלאות המקוריות שלהן בבסיס הנתונים:
+`participant`, `trip`, `location`, `guide`, `"GROUP"`, `event`, `eventregistration`, `participantgroup`, `grouptrip`.
+
+*צילום מסך של הרצת הגיבוי וטעינת הנתונים ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 2.5" alt="שלב 2.5 - טעינת גיבוי קבוצה 2" width="700">
+</p>
+
+---
+
+### 📍 שלב 3: העתקת הנתונים שלהן לטבלאות שלנו עם היסט (Offset) של 1,000,000
+העתקת המשתתפים (תוך פתרון ייחודיות אימייל ע"י הוספת סיומת `_peer`), המיקומים והטיולים לתוך הטבלאות המורחבות שלנו:
+```sql
+-- 1. העתקת משתתפים
+INSERT INTO our_participant (ParticipantID, FirstName, LastName, Phone, Email, birthday, Age)
+SELECT 
+  participantid + 1000000, 
+  firstname, 
+  lastname, 
+  phone, 
+  CASE 
+    WHEN email LIKE '%@%' THEN REPLACE(email, '@', '_peer@')
+    ELSE email || '_peer'
+  END, 
+  NULL,
+  age
+FROM participant;
+
+-- 2. העתקת מיקומים
+INSERT INTO our_location (LocationID, LocationName, Region, Address, Description)
+SELECT 
+  locationid + 1000000, 
+  locationname, 
+  region, 
+  address, 
+  description
+FROM location;
+
+-- 3. העתקת טיולים
+INSERT INTO our_trip (TripID, TripName, StartDate, EndDate, GroupSize, Trip_Type, GuideId)
+SELECT 
+  tripid + 1000000, 
+  tripname, 
+  startdate, 
+  enddate, 
+  1,
+  triptype,
+  guideid
+FROM trip;
+```
+*צילום מסך של הצלחת הרצת שלב 3 ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 3" alt="שלב 3 - העתקת הנתונים עם היסט" width="700">
+</p>
+
+---
+
+### 📍 שלב 4: מחיקת טבלאות המקור הכפולות שלהן
+שימוש ב-`CASCADE` מאפשר להסיר את טבלאות המקור הכפולות שלהן שסיימנו להעתיק, ומסיר את אילוצי המפתח הזר הישנים שלהן כדי שנוכל לקשר אותן בצורה חדשה וממוזגת:
+```sql
+DROP TABLE IF EXISTS participant CASCADE;
+DROP TABLE IF EXISTS trip CASCADE;
+DROP TABLE IF EXISTS location CASCADE;
+```
+*צילום מסך של הצלחת הרצת שלב 4 ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 4" alt="שלב 4 - מחיקת טבלאות כפולות" width="700">
+</p>
+
+---
+
+### 📍 שלב 5: עדכון מפתחות זרים בטבלאות הבנות שלהן
+עדכון המפתחות הזרים בטבלאות המקוריות שלהן (אירועים, שיוך לקבוצות וטיול לקבוצה) בהתאמה מלאה להיסט של ה-`1,000,000`:
+```sql
+-- 1. עדכון טבלת אירועים (event)
+UPDATE event SET tripid = tripid + 1000000 WHERE tripid IS NOT NULL;
+UPDATE event SET locationid = locationid + 1000000;
+
+-- 2. עדכון טבלת קשר משתתפים בקבוצה (participantgroup)
+UPDATE participantgroup SET participantid = participantid + 1000000;
+
+-- 3. עדכון טבלת קשר קבוצות בטיול (grouptrip)
+UPDATE grouptrip SET tripid = tripid + 1000000;
+```
+*צילום מסך של הצלחת הרצת שלב 5 ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 5" alt="שלב 5 - עדכון מפתחות זרים בטבלאות בנות" width="700">
+</p>
+
+---
+
+### 📍 שלב 6: יצירה מחדש של קשרי מפתח זר לטבלאות הממוזגות שלנו
+קישור מחדש של טבלאות ה-Event, ה-ParticipantGroup, ה-GroupTrip וה-Trip אל הטבלאות הממוזגות והמדריכים החדשים:
+```sql
+-- 1. קישור אירועים (event) לטיול ולמיקום הממוזגים
+ALTER TABLE event ADD CONSTRAINT fk_event_our_trip FOREIGN KEY (tripid) REFERENCES our_trip(TripID);
+ALTER TABLE event ADD CONSTRAINT fk_event_our_location FOREIGN KEY (locationid) REFERENCES our_location(LocationID);
+
+-- 2. קישור מפתחות זרים של participantgroup
+ALTER TABLE participantgroup ADD CONSTRAINT fk_pg_our_participant FOREIGN KEY (participantid) REFERENCES our_participant(ParticipantID);
+ALTER TABLE participantgroup ADD CONSTRAINT fk_pg_group FOREIGN KEY (groupid) REFERENCES "GROUP"(groupid);
+
+-- 3. קישור מפתחות זרים של grouptrip
+ALTER TABLE grouptrip ADD CONSTRAINT fk_gt_group FOREIGN KEY (groupid) REFERENCES "GROUP"(groupid);
+ALTER TABLE grouptrip ADD CONSTRAINT fk_gt_trip FOREIGN KEY (tripid) REFERENCES our_trip(TripID);
+
+-- 4. קישור הטיולים הממוזגים למדריכים
+ALTER TABLE our_trip ADD CONSTRAINT fk_trip_guide FOREIGN KEY (GuideId) REFERENCES guide(guideid);
+```
+*צילום מסך של הצלחת הרצת שלב 6 ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 6" alt="שלב 6 - קישור מפתחות זרים חדשים" width="700">
+</p>
+
+---
+
+### 📍 שלב 7: החזרת שמות הטבלאות המשותפות לשמות המקוריים
+סיום התהליך על ידי החזרת שמות טבלאות האינטגרציה הזמניות `our_...` לשמות הרגילים והסופיים של המודל:
+```sql
+ALTER TABLE our_trip RENAME TO TRIP;
+ALTER TABLE our_participant RENAME TO PARTICIPANT;
+ALTER TABLE our_location RENAME TO LOCATION;
+```
+*צילום מסך של הצלחת הרצת שלב 7 ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 7" alt="שלב 7 - החזרת שמות מקוריים" width="700">
+</p>
+
+---
+
+### 📊 תמונת מצב סופית (Tables List)
+*צילום מסך של רשימת הטבלאות הסופית (16 טבלאות) הממוזגות והנקיות ב-pgAdmin:*
+<p align="center">
+  <img src="נא להוסיף כאן קישור לצילום המסך של רשימת הטבלאות הסופית" alt="רשימת טבלאות סופית" width="500">
+</p>
+
