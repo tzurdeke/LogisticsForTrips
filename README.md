@@ -855,26 +855,55 @@ CREATE INDEX idx_trip_startdate ON TRIP(StartDate);
 
 ## אינטגרציה עם פרויקט נוסף (שלב ג')
 
-במסגרת שלב זה שילבנו את מודל הנתונים שלנו עם פרויקט נוסף. יצרנו סכמת **Superset** המאחדת את הטוב משני העולמות מבלי לפגוע בקיים.
-
-### שינויים עיקריים שבוצעו במודל המאוחד:
-1. **שמירה על מבנה קיים**: כל הישויות שלנו (כגון Trip, Participant, Equipment, Supplier, Location, Transportation) נשמרו במלואן יחד עם קשרי הגומלין.
-2. **הוספת ישויות הזוג השני**: התווספו הישויות GUIDE, GROUP, EVENT, EVENTREGISTRATION על תכונותיהן.
-3. **מיזוג ישויות חופפות**:
-   * לישות ה-TRIP יתאפשר להוסיף מפתח זר למדריך (GuideId) שמנהל את הטיול.
-   * לישות ה-PARTICIPANT הוספנו עמודת Age על מנת לאפשר קליטת נתונים מהפרויקט השני, תוך שמירה על עמודת irthday המקורית והמדויקת יותר.
-4. **מבנה הרשמה גמיש**: מטיילים יכולים כעת להירשם לטיול גם באופן ישיר כיחידים (דרך REGISTERS_TO המקורית), וגם כחלק מקבוצה מאורגנת שרשומה לטיול (דרך המבנה של הזוג השני).
-5. **קשר מדריך-ציוד**: הוספנו קשר Many-to-Many בין GUIDE ל-Equipment (הקשר Uses) המאפשר ניהול והקצאת ציוד ישירות למדריכים.
-
-קובץ ה-ERD המאוחד (Combined_TripERD.erdplus) ממוקם בתיקיית הפרויקט וניתן לטעינה ולצפייה באתר ERDPlus.
+במסגרת שלב זה שילבנו את מודל הנתונים שלנו עם פרויקט נוסף. יצרנו סכמה מאוחדת המשלבת את שני מודלי הנתונים בצורה חלקה ויעילה.
 
 ---
 
-## 🛠️ תיעוד שלבי ביצוע ריצת סקריפט האינטגרציה
+### 📊 1. תרשימי ERD ו-DSD של האגף החדש והמודל המאוחד
 
-להלן תיעוד מפורט של שלבי הרצת סקריפט האינטגרציה (`Integration.sql`) ב-**pgAdmin** למטרת מיזוג הנתונים ושילוב בסיסי הנתונים בצורה חלקה וחסינת שגיאות:
+#### 🔹 תרשים ERD - אגף חדש (הפרויקט השני)
+<p align="center">
+  <!-- הדביקי כאן קישור לתמונת ה-ERD של האגף החדש -->
+  <img src="נתיב_לתמונת_ERD_אגף_חדש" alt="ERD אגף חדש" width="700">
+</p>
 
-### 📍 שלב 1: שינוי זמני של שמות הטבלאות המשותפות שלנו
+#### 🔹 תרשים DSD - אגף חדש (הפרויקט השני)
+<p align="center">
+  <!-- הדביקי כאן קישור לתמונת ה-DSD של האגף החדש -->
+  <img src="נתיב_לתמונת_DSD_אגף_חדש" alt="DSD אגף חדש" width="700">
+</p>
+
+#### 🔹 תרשים ERD משותף (Combined ERD)
+<p align="center">
+  <!-- הדביקי כאן קישור לתמונת ה-ERD המשותף לאחר האינטגרציה -->
+  <img src="נתיב_לתמונת_ERD_משותף" alt="ERD משותף" width="700">
+</p>
+
+#### 🔹 תרשים DSD לאחר אינטגרציה (Combined DSD)
+<p align="center">
+  <!-- הדביקי כאן קישור לתמונת ה-DSD לאחר האינטגרציה -->
+  <img src="נתיב_לתמונת_DSD_משותף" alt="DSD לאחר אינטגרציה" width="700">
+</p>
+
+---
+
+### 🧠 2. החלטות שנעשו בשלב האינטגרציה
+
+1. **שמירה על מבנה קיים**: כל הישויות שלנו (כגון `Trip`, `Participant`, `Equipment`, `Supplier`, `Location`, `Transportation`) נשמרו במלואן יחד עם קשרי הגומלין.
+2. **הוספת ישויות הזוג השני**: התווספו הישויות `GUIDE`, `GROUP`, `EVENT`, `EVENTREGISTRATION` על תכונותיהן.
+3. **מיזוג ישויות חופפות**:
+   * לישות ה-`TRIP` יתאפשר להוסיף מפתח זר למדריך (`GuideId`) שמנהל את הטיול.
+   * לישות ה-`PARTICIPANT` הוספנו עמודת `Age` על מנת לאפשר קליטת נתונים מהפרויקט השני, תוך שמירה על עמודת `birthday` המקורית והמדויקת יותר.
+4. **מבנה הרשמה גמיש**: מטיילים יכולים כעת להירשם לטיול גם באופן ישיר כיחידים (דרך `REGISTERS_TO` המקורית), וגם כחלק מקבוצה מאורגנת שרשומה לטיול (דרך המבנה של הזוג השני).
+5. **קשר מדריך-ציוד**: הוספנו קשר Many-to-Many בין `GUIDE` ל-`Equipment` (הקשר Uses) המאפשר ניהול והקצאת ציוד ישירות למדריכים.
+
+---
+
+### 🛠️ 3. תיעוד שלבי ביצוע ריצת סקריפט האינטגרציה (Integrate.sql)
+
+להלן תיעוד מפורט של שלבי הרצת סקריפט האינטגרציה (`Integrate.sql`) ב-**pgAdmin** למטרת מיזוג הנתונים ושילוב בסיסי הנתונים בצורה חלקה וחסינת שגיאות:
+
+#### 📍 שלב 1: שינוי זמני של שמות הטבלאות המשותפות שלנו
 מטרת השלב היא מניעת התנגשויות שמות במערכת כאשר נטען את הגיבוי והטבלאות של הקבוצה השנייה.
 ```sql
 ALTER TABLE IF EXISTS PARTICIPANT RENAME TO our_participant;
@@ -882,13 +911,12 @@ ALTER TABLE IF EXISTS TRIP RENAME TO our_trip;
 ALTER TABLE IF EXISTS LOCATION RENAME TO our_location;
 ```
 *צילום מסך של הצלחת הרצת שלב 1 ב-pgAdmin:*
-<img width="1919" height="831" alt="Screenshot 2026-05-24 104550" src="https://github.com/user-attachments/assets/519e653a-8d09-4dc7-aea2-f32b8907fb4a" />
+<p align="center">
+  <img width="1919" height="831" alt="Screenshot 2026-05-24 104550" src="https://github.com/user-attachments/assets/519e653a-8d09-4dc7-aea2-f32b8907fb4a" />
+</p>
 
-
----
-
-### 📍 שלב 2: התאמת המבנה של הטבלאות המקוריות שלנו
-הוספת שדות חסרים (כגון גיל ומפתח למדריך), הרחבת אורכי VARCHAR וביטול אילוצים (`NOT NULL`) המונעים שגיאות קליטה עקב הבדלים במודלים של שתי הקבוצות:
+#### 📍 שלב 2: התאמת המבנה של הטבלאות המקוריות שלנו
+הוספת שדות חסרים (כגון גיל ומפתח למדריך), הרחבת אורכי VARCHAR וביטול אילוצים (`NOT NULL`) המונעים שגיאות קליטה עקב הבדלים במותאמים במודלים של שתי הקבוצות:
 ```sql
 -- 1. התאמת PARTICIPANT
 ALTER TABLE our_participant ADD COLUMN IF NOT EXISTS Age INT CHECK (Age > 0);
@@ -902,25 +930,21 @@ ALTER TABLE our_trip ALTER COLUMN Trip_Type DROP NOT NULL;
 ALTER TABLE our_trip ALTER COLUMN Trip_Type TYPE VARCHAR(50);
 ```
 *צילום מסך של הצלחת הרצת שלב 2 ב-pgAdmin:*
-<img width="1919" height="833" alt="Screenshot 2026-05-24 105208" src="https://github.com/user-attachments/assets/4877db92-06c6-42e8-a05b-830ccaf5ca4a" />
-<img width="1914" height="837" alt="Screenshot 2026-05-24 105321" src="https://github.com/user-attachments/assets/81160e44-b720-4ee1-a0a8-c98d0ddda1cc" />
-
-
-
----
-
-### 📍 שלב 2.5: הרצת קובץ הגיבוי ויצירת הטבלאות של הקבוצה השנייה
-בשלב זה הורץ הגיבוי של הקבוצה השנייה המייצר את הטבלאות המקוריות שלהן בבסיס הנתונים:
-`participant`, `trip`, `location`, `guide`, `"GROUP"`, `event`, `eventregistration`, `participantgroup`, `grouptrip`.
-
-*צילום מסך של הרצת הגיבוי וטעינת הנתונים ב-pgAdmin:*
 <p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של שלב 2.5" alt="שלב 2.5 - טעינת גיבוי קבוצה 2" width="700">
+  <img width="1919" height="833" alt="Screenshot 2026-05-24 105208" src="https://github.com/user-attachments/assets/4877db92-06c6-42e8-a05b-830ccaf5ca4a" />
+  <br>
+  <img width="1914" height="837" alt="Screenshot 2026-05-24 105321" src="https://github.com/user-attachments/assets/81160e44-b720-4ee1-a0a8-c98d0ddda1cc" />
 </p>
 
----
+#### 📍 שלב 2.5: הרצת קובץ הגיבוי ויצירת הטבלאות של הקבוצה השנייה
+בשלב זה מריצים את הגיבוי של הקבוצה השנייה המייצר את הטבלאות שלהן בבסיס הנתונים.
+*צילום מסך של הרצת הגיבוי וטעינת הנתונים ב-pgAdmin:*
+<p align="center">
+  <!-- הדביקי כאן צילום מסך של טעינת הגיבוי של קבוצה 2 -->
+  <img src="נתיב_לתמונה_גיבוי_קבוצה2" alt="שלב 2.5 - טעינת גיבוי קבוצה 2" width="700">
+</p>
 
-### 📍 שלב 3: העתקת הנתונים שלהן לטבלאות שלנו עם היסט (Offset) של 1,000,000
+#### 📍 שלב 3: העתקת הנתונים שלהן לטבלאות שלנו עם היסט (Offset) של 1,000,000
 העתקת המשתתפים (תוך פתרון ייחודיות אימייל ע"י הוספת סיומת `_peer`), המיקומים והטיולים לתוך הטבלאות המורחבות שלנו:
 ```sql
 -- 1. העתקת משתתפים
@@ -937,10 +961,12 @@ SELECT
   NULL,
   age
 FROM participant;
-<img width="1436" height="385" alt="Screenshot 2026-05-24 105501" src="https://github.com/user-attachments/assets/a2a2f46b-2550-4d65-a3c6-540790db293c" />
+```
+<p align="center">
+  <img width="1436" height="385" alt="Screenshot 2026-05-24 105501" src="https://github.com/user-attachments/assets/a2a2f46b-2550-4d65-a3c6-540790db293c" />
+</p>
 
-
-
+```sql
 -- 2. העתקת מיקומים
 INSERT INTO our_location (LocationID, LocationName, Region, Address, Description)
 SELECT 
@@ -950,8 +976,12 @@ SELECT
   address, 
   description
 FROM location;
-<img width="1917" height="841" alt="Screenshot 2026-05-24 105532" src="https://github.com/user-attachments/assets/7b2af42b-e61f-4483-a267-b43b8a6db748" />
+```
+<p align="center">
+  <img width="1917" height="841" alt="Screenshot 2026-05-24 105532" src="https://github.com/user-attachments/assets/7b2af42b-e61f-4483-a267-b43b8a6db748" />
+</p>
 
+```sql
 -- 3. העתקת טיולים
 INSERT INTO our_trip (TripID, TripName, StartDate, EndDate, GroupSize, Trip_Type, GuideId)
 SELECT 
@@ -963,13 +993,12 @@ SELECT
   triptype,
   guideid
 FROM trip;
-<img width="1919" height="826" alt="Screenshot 2026-05-24 105649" src="https://github.com/user-attachments/assets/3b79bd32-6c57-4ef5-b56e-3c6710d6388c" />
-
 ```
+<p align="center">
+  <img width="1919" height="826" alt="Screenshot 2026-05-24 105649" src="https://github.com/user-attachments/assets/3b79bd32-6c57-4ef5-b56e-3c6710d6388c" />
+</p>
 
----
-
-### 📍 שלב 4: מחיקת טבלאות המקור הכפולות שלהן
+#### 📍 שלב 4: מחיקת טבלאות המקור הכפולות שלהן
 שימוש ב-`CASCADE` מאפשר להסיר את טבלאות המקור הכפולות שלהן שסיימנו להעתיק, ומסיר את אילוצי המפתח הזר הישנים שלהן כדי שנוכל לקשר אותן בצורה חדשה וממוזגת:
 ```sql
 DROP TABLE IF EXISTS participant CASCADE;
@@ -977,81 +1006,178 @@ DROP TABLE IF EXISTS trip CASCADE;
 DROP TABLE IF EXISTS location CASCADE;
 ```
 *צילום מסך של הצלחת הרצת שלב 4 ב-pgAdmin:*
-<img width="1919" height="834" alt="Screenshot 2026-05-24 105721" src="https://github.com/user-attachments/assets/932dbec0-05e5-4a7c-9139-b2cbce34baaa" />
+<p align="center">
+  <img width="1919" height="834" alt="Screenshot 2026-05-24 105721" src="https://github.com/user-attachments/assets/932dbec0-05e5-4a7c-9139-b2cbce34baaa" />
+</p>
 
-
----
-
-### 📍 שלב 5: עדכון מפתחות זרים בטבלאות הבנות שלהן
-עדכון המפתחות הזרים בטבלאות המקוריות שלהן (אירועים, שיוך לקבוצות וטיול לקבוצה) בהתאמה מלאה להיסט של ה-`1,000,000`:
+#### 📍 שלב 5: עדכון מפתחות זרים בטבלאות הבנות שלהן בהתאמה מלאה להיסט של ה-`1,000,000`
 ```sql
 -- 1. עדכון טבלת אירועים (event)
 UPDATE event SET tripid = tripid + 1000000 WHERE tripid IS NOT NULL;
 UPDATE event SET locationid = locationid + 1000000;
-<img width="1919" height="843" alt="Screenshot 2026-05-24 105833" src="https://github.com/user-attachments/assets/90dc2abd-3890-4533-91a5-6152cb220cba" />
+```
+<p align="center">
+  <img width="1919" height="843" alt="Screenshot 2026-05-24 105833" src="https://github.com/user-attachments/assets/90dc2abd-3890-4533-91a5-6152cb220cba" />
+</p>
 
-
+```sql
 -- 2. עדכון טבלת קשר משתתפים בקבוצה (participantgroup)
 UPDATE participantgroup SET participantid = participantid + 1000000;
-<img width="1919" height="787" alt="Screenshot 2026-05-24 110305" src="https://github.com/user-attachments/assets/458bf00e-4afd-432d-9e49-044035fa46ac" />
+```
+<p align="center">
+  <img width="1919" height="787" alt="Screenshot 2026-05-24 110305" src="https://github.com/user-attachments/assets/458bf00e-4afd-432d-9e49-044035fa46ac" />
+</p>
 
-
+```sql
 -- 3. עדכון טבלת קשר קבוצות בטיול (grouptrip)
 UPDATE grouptrip SET tripid = tripid + 1000000;
-<img width="1919" height="831" alt="Screenshot 2026-05-24 110335" src="https://github.com/user-attachments/assets/29514ee4-287e-41df-a9b2-a79705b57966" />
+```
+<p align="center">
+  <img width="1919" height="831" alt="Screenshot 2026-05-24 110335" src="https://github.com/user-attachments/assets/29514ee4-287e-41df-a9b2-a79705b57966" />
+</p>
 
-
----
-
-### 📍 שלב 6: יצירה מחדש של קשרי מפתח זר לטבלאות הממוזגות שלנו
-קישור מחדש של טבלאות ה-Event, ה-ParticipantGroup, ה-GroupTrip וה-Trip אל הטבלאות הממוזגות והמדריכים החדשים:
+#### 📍 שלב 6: יצירה מחדש של קשרי מפתח זר לטבלאות הממוזגות שלנו
 ```sql
 -- 1. קישור אירועים (event) לטיול ולמיקום הממוזגים
 ALTER TABLE event ADD CONSTRAINT fk_event_our_trip FOREIGN KEY (tripid) REFERENCES our_trip(TripID);
 ALTER TABLE event ADD CONSTRAINT fk_event_our_location FOREIGN KEY (locationid) REFERENCES our_location(LocationID);
-<img width="1913" height="835" alt="Screenshot 2026-05-24 110755" src="https://github.com/user-attachments/assets/06554914-d501-4ffb-80ee-637fa12afb81" />
+```
+<p align="center">
+  <img width="1913" height="835" alt="Screenshot 2026-05-24 110755" src="https://github.com/user-attachments/assets/06554914-d501-4ffb-80ee-637fa12afb81" />
+</p>
 
-
+```sql
 -- 2. קישור מפתחות זרים של participantgroup
 ALTER TABLE participantgroup ADD CONSTRAINT fk_pg_our_participant FOREIGN KEY (participantid) REFERENCES our_participant(ParticipantID);
 ALTER TABLE participantgroup ADD CONSTRAINT fk_pg_group FOREIGN KEY (groupid) REFERENCES "GROUP"(groupid);
-<img width="1919" height="834" alt="Screenshot 2026-05-24 110829" src="https://github.com/user-attachments/assets/1859a070-2d98-46d3-8fca-afe3cb85b195" />
+```
+<p align="center">
+  <img width="1919" height="834" alt="Screenshot 2026-05-24 110829" src="https://github.com/user-attachments/assets/1859a070-2d98-46d3-8fca-afe3cb85b195" />
+</p>
 
-
+```sql
 -- 3. קישור מפתחות זרים של grouptrip
 ALTER TABLE grouptrip ADD CONSTRAINT fk_gt_group FOREIGN KEY (groupid) REFERENCES "GROUP"(groupid);
 ALTER TABLE grouptrip ADD CONSTRAINT fk_gt_trip FOREIGN KEY (tripid) REFERENCES our_trip(TripID);
-<img width="1919" height="820" alt="Screenshot 2026-05-24 110857" src="https://github.com/user-attachments/assets/03d9ce7a-9bff-4467-9bbc-69cb4186e0a6" />
+```
+<p align="center">
+  <img width="1919" height="820" alt="Screenshot 2026-05-24 110857" src="https://github.com/user-attachments/assets/03d9ce7a-9bff-4467-9bbc-69cb4186e0a6" />
+</p>
 
-
+```sql
 -- 4. קישור הטיולים הממוזגים למדריכים
 ALTER TABLE our_trip ADD CONSTRAINT fk_trip_guide FOREIGN KEY (GuideId) REFERENCES guide(guideid);
-<img width="1916" height="832" alt="Screenshot 2026-05-24 110948" src="https://github.com/user-attachments/assets/40730dec-c690-4492-8b11-65e2c37edd92" />
-
 ```
+<p align="center">
+  <img width="1916" height="832" alt="Screenshot 2026-05-24 110948" src="https://github.com/user-attachments/assets/40730dec-c690-4492-8b11-65e2c37edd92" />
+</p>
 
----
-
-### 📍 שלב 7: החזרת שמות הטבלאות המשותפות לשמות המקוריים
-סיום התהליך על ידי החזרת שמות טבלאות האינטגרציה הזמניות `our_...` לשמות הרגילים והסופיים של המודל:
+#### 📍 שלב 7: החזרת שמות הטבלאות המשותפות לשמות המקוריים
 ```sql
 ALTER TABLE our_trip RENAME TO TRIP;
 ALTER TABLE our_participant RENAME TO PARTICIPANT;
 ALTER TABLE our_location RENAME TO LOCATION;
 ```
 *צילום מסך של הצלחת הרצת שלב 7 ב-pgAdmin:*
-<img width="1919" height="830" alt="Screenshot 2026-05-24 111017" src="https://github.com/user-attachments/assets/35d390cf-ed32-49ff-b2bc-88588c05835a" />
+<p align="center">
+  <img width="1919" height="830" alt="Screenshot 2026-05-24 111017" src="https://github.com/user-attachments/assets/35d390cf-ed32-49ff-b2bc-88588c05835a" />
+  <br>
+  <img width="444" height="623" alt="image" src="https://github.com/user-attachments/assets/059a3189-8268-4e12-9acb-2cb84ccfab90" />
+</p>
 
-<img width="444" height="623" alt="image" src="https://github.com/user-attachments/assets/059a3189-8268-4e12-9acb-2cb84ccfab90" />
-
+#### 📊 תמונת מצב סופית (Tables List)
+*צילום מסך של רשימת הטבלאות הסופית (16 טבלאות) הממוזגות והנקיות ב-pgAdmin:*
+<p align="center">
+  <!-- הדביקי כאן צילום מסך של רשימת הטבלאות הסופית -->
+  <img src="נתיב_לתמונת_רשימת_טבלאות_סופית" alt="רשימת טבלאות סופית" width="500">
+</p>
 
 ---
 
-### 📊 תמונת מצב סופית (Tables List)
-*צילום מסך של רשימת הטבלאות הסופית (16 טבלאות) הממוזגות והנקיות ב-pgAdmin:*
-<p align="center">
-  <img src="נא להוסיף כאן קישור לצילום המסך של רשימת הטבלאות הסופית" alt="רשימת טבלאות סופית" width="500">
-</p>
-backup3:
+### 👁️ 4. פקודות ליצירת המבטים והשאילתות (Views.sql)
 
+המבטים והשאילתות נכתבו בקובץ `Views.sql`. להלן התיעוד וההסבר שלהם:
 
+#### 🔹 מבט 1: `Trip_Guide_Logistics_View`
+* **תיאור מילולי:** מבט המרכז את פרטי הטיולים יחד עם המדריך האחראי עליהם. המבט משלב את טבלת `TRIP` עם טבלת `GUIDE` שנוספה באינטגרציה.
+* **קוד יצירת המבט:**
+  ```sql
+  CREATE OR REPLACE VIEW Trip_Guide_Logistics_View AS
+  SELECT 
+      T.TripID,
+      T.TripName,
+      T.StartDate,
+      T.EndDate,
+      T.GroupSize,
+      G.guideid AS Guide_ID,
+      G.GuideName AS Guide_Name,
+      G.Specialization AS Guide_Specialization
+  FROM TRIP T
+  LEFT JOIN guide G ON T.GuideId = G.guideid;
+  ```
+* **שליפת נתונים מהמבט (`SELECT *`):**
+  <p align="center">
+    <!-- הדביקי כאן צילום מסך של פלט השליפה Select * מהמבט הראשון -->
+    <img src="נתיב_לצילום_שליפת_נתונים_מבט1" alt="שליפת נתונים מבט 1" width="700">
+  </p>
+
+* **שאילתה על המבט:**
+  * **תיאור מילולי:** שליפת כל הטיולים שיש להם מדריך המומחה באזור מסוים או בעל התמחות ספציפית (לדוגמה 'Desert' או 'Hiking'), ממוין לפי תאריך התחלה.
+  * **קוד השאילתה:**
+    ```sql
+    SELECT TripID, TripName, StartDate, Guide_Name, Guide_Specialization
+    FROM Trip_Guide_Logistics_View
+    WHERE Guide_ID IS NOT NULL
+    ORDER BY StartDate;
+    ```
+  * **פלט השאילתה:**
+    <p align="center">
+      <!-- הדביקי כאן צילום מסך של פלט השאילתה מעל המבט הראשון -->
+      <img src="נתיב_לפלט_שאילתה_מבט1" alt="פלט שאילתה על מבט 1" width="700">
+    </p>
+
+---
+
+#### 🔹 מבט 2: `Group_Participant_Summary_View`
+* **תיאור מילולי:** מבט המציג סיכום סטטיסטי עבור כל קבוצה (`Group`): מספר המטיילים הרשומים בה וממוצע הגילאים שלהם.
+* **קוד יצירת המבט:**
+  ```sql
+  CREATE OR REPLACE VIEW Group_Participant_Summary_View AS
+  SELECT 
+      GP.groupid AS Group_ID,
+      GP.GroupName AS Group_Name,
+      GP.CreatedDate AS Group_Created_Date,
+      COUNT(P.ParticipantID) AS Total_Participants,
+      ROUND(AVG(P.Age), 2) AS Average_Participant_Age
+  FROM "GROUP" GP
+  LEFT JOIN participantgroup PGS ON GP.groupid = PGS.groupid
+  LEFT JOIN PARTICIPANT P ON PGS.participantid = P.ParticipantID
+  GROUP BY GP.groupid, GP.GroupName, GP.CreatedDate;
+  ```
+* **שליפת נתונים מהמבט (`SELECT *`):**
+  <p align="center">
+    <!-- הדביקי כאן צילום מסך של פלט השליפה Select * מהמבט השני -->
+    <img src="נתיב_לצילום_שליפת_נתונים_מבט2" alt="שליפת נתונים מבט 2" width="700">
+  </p>
+
+* **שאילתה על המבט:**
+  * **תיאור מילולי:** שליפת קבוצות פעילות שיש בהן לפחות 2 משתתפים, וממוצע הגילאים של חברי הקבוצה נמוך מ-40 (קהל יעד צעיר/משפחות).
+  * **קוד השאילתה:**
+    ```sql
+    SELECT Group_ID, Group_Name, Total_Participants, Average_Participant_Age
+    FROM Group_Participant_Summary_View
+    WHERE Total_Participants >= 2 AND Average_Participant_Age < 40
+    ORDER BY Total_Participants DESC;
+    ```
+  * **פלט השאילתה:**
+    <p align="center">
+      <!-- הדביקי כאן צילום מסך של פלט השאילתה מעל המבט השני -->
+      <img src="נתיב_לפלט_שאילתה_מבט2" alt="פלט שאילתה על מבט 2" width="700">
+    </p>
+
+---
+
+### 💾 5. קובץ גיבוי מעודכן (Backup3)
+
+קובץ הגיבוי המעודכן המכיל את כלל הישויות, קשרי הגומלין והנתונים לאחר תהליך האינטגרציה הכללית:
+* [צפייה בקובץ הגיבוי Backup3](./DBProject/8578_3938/שלב%20ג/Backup3)
