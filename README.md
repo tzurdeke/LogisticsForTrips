@@ -1132,7 +1132,7 @@ GROUP BY T.TripID, T.TripName, T.StartDate, T.EndDate;
 <img width="512" height="288" alt="image" src="https://github.com/user-attachments/assets/ea1817b9-2d16-42c6-9ebc-e02b392aeaa9" />
  `
 ##### ❓ שאילתות על מבט 1:
-* **שאילתה 1.1:** מציאת טיולים שבהם הוקצה ציוד כלשהו, אך לא הוזמן עבורם אף רכב הסעה (מצב הדורש תיאום תחבורה מיידי לציוד או למשתתפים).
+ **שאילתה 1.1:** מציאת טיולים שבהם הוקצה ציוד כלשהו, אך לא הוזמן עבורם אף רכב הסעה (מצב הדורש תיאום תחבורה מיידי לציוד או למשתתפים).
   
   **קוד השאילתה:**
   ```sql
@@ -1148,11 +1148,8 @@ GROUP BY T.TripID, T.TripName, T.StartDate, T.EndDate;
   ```
   
   **צילום פלט השאילתה:**
-  <p align="center">
-    <!-- הדביקי כאן צילום מסך של פלט שאילתה 1 על מבט 1 -->
-    <img src=<img width="512" height="171" alt="image" src="https://github.com/user-attachments/assets/3e4bd19f-82e6-4aa0-8af5-3aa7f1c7f97f" />
- width="700">
-  </p>
+<img width="512" height="171" alt="image" src="https://github.com/user-attachments/assets/d7f34e4c-f829-495e-a584-f17ae550640f" />
+
 
 * **שאילתה 1.2:** איתור טיולים עתידיים שבהם סך קיבולת הרכבים שהוזמנו נמוכה מ-50 נוסעים, לצורך בקרה וזיהוי קבוצות שעלולות להזדקק להסעה נוספת.
   
@@ -1169,11 +1166,8 @@ GROUP BY T.TripID, T.TripName, T.StartDate, T.EndDate;
   ```
   
   **צילום פלט השאילתה:**
-  <p align="center">
-    <!-- הדביקי כאן צילום מסך של פלט שאילתה 2 על מבט 1 -->
-    <img src=<img width="512" height="223" alt="image" src="https://github.com/user-attachments/assets/194d506b-ba0e-4b33-9b3e-2a9deca966c0" />
- width="700">
-  </p>
+<img width="512" height="223" alt="image" src="https://github.com/user-attachments/assets/eeea8dd1-d5c1-4da6-b5af-a2523085774a" />
+
 
 ---
 
@@ -1217,11 +1211,8 @@ GROUP BY G.guideid, G.GuideName, G.Specialization, G.ExperienceYears;
   ```
   
   **צילום פלט השאילתה:**
-  <p align="center">
-    <!-- הדביקי כאן צילום מסך של פלט שאילתה 1 על מבט 2 -->
-    <img src=<img width="512" height="254" alt="image" src="https://github.com/user-attachments/assets/2d9fe952-76f7-4232-a601-64c8be93acae" />
- width="700">
-  </p>
+<img width="512" height="254" alt="image" src="https://github.com/user-attachments/assets/c58537fe-7e40-4c39-b3f0-ab1975084947" />
+
 
 * **שאילתה 2.2:** חישוב ממוצע הטיולים והאירועים המשויכים למדריכים לפי תחומי ההתמחות שלהם, כדי לבחון עומסים בין התמחויות שונות.
   
@@ -1238,11 +1229,8 @@ GROUP BY G.guideid, G.GuideName, G.Specialization, G.ExperienceYears;
   ```
   
   **צילום פלט השאילתה:**
-  <p align="center">
-    <!-- הדביקי כאן צילום מסך של פלט שאילתה 2 על מבט 2 -->
-    <img src=<img width="512" height="306" alt="image" src="https://github.com/user-attachments/assets/5cbbe933-d5de-4ddb-913c-9e19e9b93550" />
- width="700">
-  </p>
+<img width="512" height="306" alt="image" src="https://github.com/user-attachments/assets/20424bc9-9eac-46ce-a3d5-102cb7aad973" />
+
 
 ---
 
