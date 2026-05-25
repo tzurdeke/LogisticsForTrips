@@ -1129,12 +1129,8 @@ LEFT JOIN TRANSPORTATION TR ON TT.TransportID = TR.TransportID
 GROUP BY T.TripID, T.TripName, T.StartDate, T.EndDate;
 ```
 
-**פלט השאילתה `SELECT * FROM Trip_Logistics_Summary LIMIT 10;`:**
-<p align="center">
-  <!-- הדביקי כאן צילום מסך של פלט שליפת הנתונים מהמבט (10 רשומות) -->
-  <img src="נתיב_לצילום_מבט_1_שליפה" alt="שליפת נתונים ממבט 1" width="700">
-</p>
-
+<img width="512" height="288" alt="image" src="https://github.com/user-attachments/assets/ea1817b9-2d16-42c6-9ebc-e02b392aeaa9" />
+ `
 ##### ❓ שאילתות על מבט 1:
 * **שאילתה 1.1:** מציאת טיולים שבהם הוקצה ציוד כלשהו, אך לא הוזמן עבורם אף רכב הסעה (מצב הדורש תיאום תחבורה מיידי לציוד או למשתתפים).
   
@@ -1154,7 +1150,8 @@ GROUP BY T.TripID, T.TripName, T.StartDate, T.EndDate;
   **צילום פלט השאילתה:**
   <p align="center">
     <!-- הדביקי כאן צילום מסך של פלט שאילתה 1 על מבט 1 -->
-    <img src="נתיב_לצילום_שאילתה_1_מבט_1" alt="פלט שאילתה 1.1" width="700">
+    <img src=<img width="512" height="171" alt="image" src="https://github.com/user-attachments/assets/3e4bd19f-82e6-4aa0-8af5-3aa7f1c7f97f" />
+ width="700">
   </p>
 
 * **שאילתה 1.2:** איתור טיולים עתידיים שבהם סך קיבולת הרכבים שהוזמנו נמוכה מ-50 נוסעים, לצורך בקרה וזיהוי קבוצות שעלולות להזדקק להסעה נוספת.
@@ -1174,7 +1171,8 @@ GROUP BY T.TripID, T.TripName, T.StartDate, T.EndDate;
   **צילום פלט השאילתה:**
   <p align="center">
     <!-- הדביקי כאן צילום מסך של פלט שאילתה 2 על מבט 1 -->
-    <img src="נתיב_לצילום_שאילתה_2_מבט_1" alt="פלט שאילתה 1.2" width="700">
+    <img src=<img width="512" height="223" alt="image" src="https://github.com/user-attachments/assets/194d506b-ba0e-4b33-9b3e-2a9deca966c0" />
+ width="700">
   </p>
 
 ---
@@ -1200,11 +1198,7 @@ LEFT JOIN event E ON T.TripID = E.tripid
 GROUP BY G.guideid, G.GuideName, G.Specialization, G.ExperienceYears;
 ```
 
-**פלט השאילתה `SELECT * FROM Guide_Performance_View LIMIT 10;`:**
-<p align="center">
-  <!-- הדביקי כאן צילום מסך של פלט שליפת הנתונים מהמבט (10 רשומות) -->
-  <img src="נתיב_לצילום_מבט_2_שליפה" alt="שליפת נתונים ממבט 2" width="700">
-</p>
+<img width="512" height="241" alt="image" src="https://github.com/user-attachments/assets/de0a966a-f85d-475c-b35d-477d773936d7" />
 
 ##### ❓ שאילתות על מבט 2:
 * **שאילתה 2.1:** מציאת מדריכים מנוסים (מעל 3 שנות ניסיון) שמנהלים לפחות קבוצה אחת, אך טרם שויך להם טיול פעיל בלוח הזמנים.
@@ -1225,7 +1219,8 @@ GROUP BY G.guideid, G.GuideName, G.Specialization, G.ExperienceYears;
   **צילום פלט השאילתה:**
   <p align="center">
     <!-- הדביקי כאן צילום מסך של פלט שאילתה 1 על מבט 2 -->
-    <img src="נתיב_לצילום_שאילתה_1_מבט_2" alt="פלט שאילתה 2.1" width="700">
+    <img src=<img width="512" height="254" alt="image" src="https://github.com/user-attachments/assets/2d9fe952-76f7-4232-a601-64c8be93acae" />
+ width="700">
   </p>
 
 * **שאילתה 2.2:** חישוב ממוצע הטיולים והאירועים המשויכים למדריכים לפי תחומי ההתמחות שלהם, כדי לבחון עומסים בין התמחויות שונות.
@@ -1245,7 +1240,8 @@ GROUP BY G.guideid, G.GuideName, G.Specialization, G.ExperienceYears;
   **צילום פלט השאילתה:**
   <p align="center">
     <!-- הדביקי כאן צילום מסך של פלט שאילתה 2 על מבט 2 -->
-    <img src="נתיב_לצילום_שאילתה_2_מבט_2" alt="פלט שאילתה 2.2" width="700">
+    <img src=<img width="512" height="306" alt="image" src="https://github.com/user-attachments/assets/5cbbe933-d5de-4ddb-913c-9e19e9b93550" />
+ width="700">
   </p>
 
 ---
