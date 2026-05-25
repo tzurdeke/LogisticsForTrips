@@ -1,15 +1,15 @@
 /* 
 ====================================================================
-  סקריפט אינטגרציה חסין-שגיאות (גרסה סופית!)
-  ממזג את בסיס הנתונים שלנו עם הנתונים של הקבוצה השנייה.
-  מוסיף הזחה (Offset) של 1,000,000 למזהים שלהן כדי למנוע התנגשויות מפתחות,
-  ומתאים את המבנה והמפתחות הזרים בצורה חלקה.
+  Fault-Tolerant Integration Script (Final Version!)
+  Merges our database schema and data with the peer group's database.
+  Adds an offset of 1,000,000 to their identifiers to prevent PK conflicts,
+  and seamlessly adjusts foreign keys and table structure.
 ====================================================================
 */
 
 -- =================================================================
--- שלב 1: שינוי זמני של שמות הטבלאות המשותפות שלנו
--- מונע התנגשויות שמות כאשר נטען את הגיבוי של הקבוצה השנייה
+-- Step 1: Temporary renaming of our shared tables
+-- Prevents name conflicts when loading the backup of the second group
 -- =================================================================
 
 ALTER TABLE IF EXISTS PARTICIPANT RENAME TO our_participant;
@@ -17,29 +17,29 @@ ALTER TABLE IF EXISTS TRIP RENAME TO our_trip;
 ALTER TABLE IF EXISTS LOCATION RENAME TO our_location;
 
 -- =================================================================
--- שלב 2: התאמת המבנה של הטבלאות המקוריות שלנו
--- הוספת שדות חסרים, הרחבת אורכי VARCHAR וביטול אילוצים למניעת שגיאות
+-- Step 2: Adjusting the structure of our original tables
+-- Adding missing columns, expanding VARCHAR lengths and dropping constraints to prevent errors
 -- =================================================================
 
--- 1. התאמת PARTICIPANT:
+-- 1. Adjusting PARTICIPANT:
 ALTER TABLE our_participant ADD COLUMN IF NOT EXISTS Age INT CHECK (Age > 0);
-ALTER TABLE our_participant ALTER COLUMN birthday DROP NOT NULL; -- אצלן אין תאריך לידה
-ALTER TABLE our_participant ALTER COLUMN Phone DROP NOT NULL;    -- אצלן טלפון הוא אופציונלי
-ALTER TABLE our_participant ALTER COLUMN Email TYPE VARCHAR(100); -- הרחבה למניעת שגיאות אורך
+ALTER TABLE our_participant ALTER COLUMN birthday DROP NOT NULL; -- peer group participant has no birthday
+ALTER TABLE our_participant ALTER COLUMN Phone DROP NOT NULL;    -- phone is optional in peer group
+ALTER TABLE our_participant ALTER COLUMN Email TYPE VARCHAR(100); -- expand length to prevent overflow errors
 
--- 2. התאמת TRIP:
-ALTER TABLE our_trip ADD COLUMN IF NOT EXISTS GuideId INT;       -- המפתח הזר למדריך
-ALTER TABLE our_trip ALTER COLUMN Trip_Type DROP NOT NULL;        -- אצלן אין סוג טיול מקביל בשדה זה
-ALTER TABLE our_trip ALTER COLUMN Trip_Type TYPE VARCHAR(50);     -- הרחבה בהתאם לגיבוי שלהן (triptype VARCHAR(50))
+-- 2. Adjusting TRIP:
+ALTER TABLE our_trip ADD COLUMN IF NOT EXISTS GuideId INT;       -- foreign key to guide
+ALTER TABLE our_trip ALTER COLUMN Trip_Type DROP NOT NULL;        -- peer group trip has no trip type in this field
+ALTER TABLE our_trip ALTER COLUMN Trip_Type TYPE VARCHAR(50);     -- expand to match peer backup (triptype VARCHAR(50))
 
--- [בשלב זה יש להריץ את הגיבוי של הקבוצה השנייה שיוצר את הטבלאות שלהן:
+-- [At this point, run the backup script of the peer group that creates their tables:
 -- participant, trip, location, guide, "GROUP", event, eventregistration, participantgroup, grouptrip]
 
 -- =================================================================
--- שלב 3: העתקת הנתונים שלהן לטבלאות שלנו עם היסט (Offset) של 1,000,000
+-- Step 3: Copying their data to our tables with a 1,000,000 offset
 -- =================================================================
 
--- 1. העתקת משתתפים (עם פתרון ייחודיות אימייל ע"י הוספת סיומת _peer)
+-- 1. Copy participants (handling email uniqueness by adding '_peer' suffix)
 INSERT INTO our_participant (ParticipantID, FirstName, LastName, Phone, Email, birthday, Age)
 SELECT 
   participantid + 1000000, 
@@ -50,11 +50,11 @@ SELECT
     WHEN email LIKE '%@%' THEN REPLACE(email, '@', '_peer@')
     ELSE email || '_peer'
   END, 
-  NULL, -- אין להן תאריך לידה
+  NULL, -- peer has no birthday data
   age
 FROM participant;
 
--- 2. העתקת מיקומים
+-- 2. Copy locations
 INSERT INTO our_location (LocationID, LocationName, Region, Address, Description)
 SELECT 
   locationid + 1000000, 
@@ -64,20 +64,20 @@ SELECT
   description
 FROM location;
 
--- 3. העתקת טיולים (העתקת triptype שלהן ל-Trip_Type שלנו)
+-- 3. Copy trips (copying their triptype to our Trip_Type)
 INSERT INTO our_trip (TripID, TripName, StartDate, EndDate, GroupSize, Trip_Type, GuideId)
 SELECT 
   tripid + 1000000, 
   tripname, 
   startdate, 
   enddate, 
-  1,        -- ערך ברירת מחדל
-  triptype, -- סוג הטיול מהטבלה שלהן
+  1,        -- default group size value
+  triptype, -- trip type from peer table
   guideid
 FROM trip;
 
 -- =================================================================
--- שלב 4: מחיקת טבלאות המקור הכפולות שלהן (CASCADE יסיר את אילוצי ה-FK הישנים)
+-- Step 4: Dropping the duplicate source tables (CASCADE will remove old FK constraints)
 -- =================================================================
 
 DROP TABLE IF EXISTS participant CASCADE;
@@ -85,43 +85,42 @@ DROP TABLE IF EXISTS trip CASCADE;
 DROP TABLE IF EXISTS location CASCADE;
 
 -- =================================================================
--- שלב 5: עדכון מפתחות זרים בטבלאות הבנות שלהן בהתאם להזחה של 1,000,000
+-- Step 5: Updating foreign keys in their child tables to match the 1,000,000 offset
 -- =================================================================
 
--- 1. עדכון טבלת אירועים (event)
+-- 1. Update event table
 UPDATE event SET tripid = tripid + 1000000 WHERE tripid IS NOT NULL;
 UPDATE event SET locationid = locationid + 1000000;
 
--- 2. עדכון טבלת קשר משתתפים בקבוצה (participantgroup)
+-- 2. Update participantgroup table
 UPDATE participantgroup SET participantid = participantid + 1000000;
 
--- 3. עדכון טבלת קשר קבוצות בטיול (grouptrip)
+-- 3. Update grouptrip table
 UPDATE grouptrip SET tripid = tripid + 1000000;
 
 -- =================================================================
--- שלב 6: יצירה מחדש של קשרי המפתח הזר (Foreign Keys) לטבלאות הממוזגות שלנו
+-- Step 6: Recreating foreign key constraints pointing to our merged tables
 -- =================================================================
 
--- 1. קישור אירועים (event) לטיול ולמיקום הממוזגים
+-- 1. Link events to the merged trip and location tables
 ALTER TABLE event ADD CONSTRAINT fk_event_our_trip FOREIGN KEY (tripid) REFERENCES our_trip(TripID);
 ALTER TABLE event ADD CONSTRAINT fk_event_our_location FOREIGN KEY (locationid) REFERENCES our_location(LocationID);
 
--- 2. קישור מפתחות זרים של participantgroup
+-- 2. Link participantgroup foreign keys
 ALTER TABLE participantgroup ADD CONSTRAINT fk_pg_our_participant FOREIGN KEY (participantid) REFERENCES our_participant(ParticipantID);
 ALTER TABLE participantgroup ADD CONSTRAINT fk_pg_group FOREIGN KEY (groupid) REFERENCES "GROUP"(groupid);
 
--- 3. קישור מפתחות זרים של grouptrip
+-- 3. Link grouptrip foreign keys
 ALTER TABLE grouptrip ADD CONSTRAINT fk_gt_group FOREIGN KEY (groupid) REFERENCES "GROUP"(groupid);
 ALTER TABLE grouptrip ADD CONSTRAINT fk_gt_trip FOREIGN KEY (tripid) REFERENCES our_trip(TripID);
 
--- 4. קישור הטיולים הממוזגים למדריכים
+-- 4. Link merged trips to guides
 ALTER TABLE our_trip ADD CONSTRAINT fk_trip_guide FOREIGN KEY (GuideId) REFERENCES guide(guideid);
 
 -- =================================================================
--- שלב 7: החזרת שמות הטבלאות המשותפות לשמות המקוריים שלהן
+-- Step 7: Renaming the shared tables back to their original names
 -- =================================================================
 
 ALTER TABLE our_trip RENAME TO TRIP;
 ALTER TABLE our_participant RENAME TO PARTICIPANT;
 ALTER TABLE our_location RENAME TO LOCATION;
-
