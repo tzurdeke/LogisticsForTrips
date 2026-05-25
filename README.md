@@ -853,7 +853,8 @@ CREATE INDEX idx_trip_startdate ON TRIP(StartDate);
 
 ---
 
-## אינטגרציה עם פרויקט נוסף (שלב ג')
+<a name="אינטגרציה-עם-פרויקט-נוסף-שלב-ג"></a>
+## 🔮 שלב ג' - אינטגרציה ומבטים
 
 במסגרת שלב זה שילבנו את מודל הנתונים שלנו עם פרויקט נוסף. יצרנו סכמה מאוחדת המשלבת את שני מודלי הנתונים בצורה חלקה ויעילה.
 
@@ -861,7 +862,8 @@ CREATE INDEX idx_trip_startdate ON TRIP(StartDate);
 * [תרשימי ERD ו-DSD של האגף החדש והמודל המאוחד](#1-תרשימי-erd-ו-dsd-של-האגף-החדש-והמודל-המאוחד)
 * [החלטות שנעשו בשלב האינטגרציה](#2-החלטות-שנעשו-בשלב-האינטגרציה)
 * [תיעוד שלבי ביצוע ריצת סקריפט האינטגרציה (Integrate.sql)](#3-תיעוד-שלבי-ביצוע-ריצת-סקריפט-האינטגרציה-integratesql)
-* [קובץ גיבוי מעודכן (Backup3)](#4-קובץ-גיבוי-מעודכן-backup3)
+* [פקודות ליצירת המבטים והשאילתות (Views.sql)](#4-פקודות-ליצירת-המבטים-והשאילתות-viewssql)
+* [קובץ גיבוי מעודכן (Backup3)](#5-קובץ-גיבוי-מעודכן-backup3)
 
 ---
 
@@ -1095,8 +1097,161 @@ ALTER TABLE our_location RENAME TO LOCATION;
 
 ---
 
-<a name="4-קובץ-גיבוי-מעודכן-backup3"></a>
-### 💾 4. קובץ גיבוי מעודכן (Backup3)
+<a name="4-פקודות-ליצירת-המבטים-והשאילתות-viewssql"></a>
+### 👁️ 4. פקודות ליצירת המבטים והשאילתות (Views.sql)
+
+בשלב זה יצרנו שני מבטים (Views) המציגים מידע לוגיסטי ותפעולי מורכב המשלב מספר טבלאות. עבור כל מבט נכתבו שתי שאילתות משמעותיות לצורך ניתוח ובקרה.
+
+קובץ ה-SQL המלא המכיל את הגדרות המבטים והשאילתות:  
+🔗 [צפייה ב-Views.sql](./DBProject/8578_3938/שלב%20ג/Views.sql)
+
+---
+
+#### 🔹 מבט 1: `Trip_Logistics_Summary` (מנקודת המבט של אגף הלוגיסטיקה)
+**תיאור מילולי:** מבט המרכז ומסכם את המשאבים הלוגיסטיים שהוקצו לכל טיול. הוא מציג את כמות פריטי הציוד הייחודיים, סך כמות הציוד המצטבר שהוקצה, מספר הרכבים הייחודיים שהוזמנו, וסך קיבולת הנוסעים של כל הרכבים בטיול. המבט משלב את הטבלאות `TRIP`, `TRIP_EQUIPMENT`, `TRIP_TRANSPORTATION` ו-`TRANSPORTATION`.
+
+**קוד יצירת המבט (SQL):**
+```sql
+CREATE OR REPLACE VIEW Trip_Logistics_Summary AS
+SELECT 
+    T.TripID,
+    T.TripName,
+    T.StartDate,
+    T.EndDate,
+    COUNT(DISTINCT TE.EquipmentID) AS Unique_Equipment_Items,
+    COALESCE(SUM(TE.QuantityAllocated), 0) AS Total_Allocated_Equipment,
+    COUNT(DISTINCT TT.TransportID) AS Unique_Vehicles,
+    COALESCE(SUM(TR.Capacity), 0) AS Total_Vehicle_Capacity
+FROM TRIP T
+LEFT JOIN TRIP_EQUIPMENT TE ON T.TripID = TE.TripID
+LEFT JOIN TRIP_TRANSPORTATION TT ON T.TripID = TT.TripID
+LEFT JOIN TRANSPORTATION TR ON TT.TransportID = TR.TransportID
+GROUP BY T.TripID, T.TripName, T.StartDate, T.EndDate;
+```
+
+**פלט השאילתה `SELECT * FROM Trip_Logistics_Summary LIMIT 10;`:**
+<p align="center">
+  <!-- הדביקי כאן צילום מסך של פלט שליפת הנתונים מהמבט (10 רשומות) -->
+  <img src="נתיב_לצילום_מבט_1_שליפה" alt="שליפת נתונים ממבט 1" width="700">
+</p>
+
+##### ❓ שאילתות על מבט 1:
+* **שאילתה 1.1:** מציאת טיולים שבהם הוקצה ציוד כלשהו, אך לא הוזמן עבורם אף רכב הסעה (מצב הדורש תיאום תחבורה מיידי לציוד או למשתתפים).
+  
+  **קוד השאילתה:**
+  ```sql
+  SELECT 
+      TripID, 
+      TripName, 
+      StartDate, 
+      Total_Allocated_Equipment, 
+      Unique_Vehicles
+  FROM Trip_Logistics_Summary
+  WHERE Total_Allocated_Equipment > 0 AND Unique_Vehicles = 0
+  ORDER BY StartDate;
+  ```
+  
+  **צילום פלט השאילתה:**
+  <p align="center">
+    <!-- הדביקי כאן צילום מסך של פלט שאילתה 1 על מבט 1 -->
+    <img src="נתיב_לצילום_שאילתה_1_מבט_1" alt="פלט שאילתה 1.1" width="700">
+  </p>
+
+* **שאילתה 1.2:** איתור טיולים עתידיים שבהם סך קיבולת הרכבים שהוזמנו נמוכה מ-50 נוסעים, לצורך בקרה וזיהוי קבוצות שעלולות להזדקק להסעה נוספת.
+  
+  **קוד השאילתה:**
+  ```sql
+  SELECT 
+      TripID, 
+      TripName, 
+      StartDate, 
+      Total_Vehicle_Capacity
+  FROM Trip_Logistics_Summary
+  WHERE StartDate >= CURRENT_DATE AND Total_Vehicle_Capacity < 50
+  ORDER BY Total_Vehicle_Capacity;
+  ```
+  
+  **צילום פלט השאילתה:**
+  <p align="center">
+    <!-- הדביקי כאן צילום מסך של פלט שאילתה 2 על מבט 1 -->
+    <img src="נתיב_לצילום_שאילתה_2_מבט_1" alt="פלט שאילתה 1.2" width="700">
+  </p>
+
+---
+
+#### 🔹 מבט 2: `Guide_Performance_View` (מנקודת המבט של אגף מדריכים ואירועים)
+**תיאור מילולי:** מבט המציג נתונים סטטיסטיים וסיכום ביצועים עבור כל מדריך. המבט מציג את מספר הקבוצות שהמדריך מנהל באופן פעיל, מספר הטיולים השונים שמשויכים אליו, ומספר האירועים השונים בטיולים אלו שבהם הוא מעורב. המבט משלב את הטבלאות `guide`, `"GROUP"`, `TRIP` ו-`event`.
+
+**קוד יצירת המבט (SQL):**
+```sql
+CREATE OR REPLACE VIEW Guide_Performance_View AS
+SELECT 
+    G.guideid AS Guide_ID,
+    G.GuideName AS Guide_Name,
+    G.Specialization AS Guide_Specialization,
+    G.ExperienceYears AS Experience_Years,
+    COUNT(DISTINCT GP.groupid) AS Managed_Groups,
+    COUNT(DISTINCT T.TripID) AS Assigned_Trips,
+    COUNT(DISTINCT E.eventid) AS Related_Events
+FROM guide G
+LEFT JOIN "GROUP" GP ON G.guideid = GP.GuideId
+LEFT JOIN TRIP T ON G.guideid = T.GuideId
+LEFT JOIN event E ON T.TripID = E.tripid
+GROUP BY G.guideid, G.GuideName, G.Specialization, G.ExperienceYears;
+```
+
+**פלט השאילתה `SELECT * FROM Guide_Performance_View LIMIT 10;`:**
+<p align="center">
+  <!-- הדביקי כאן צילום מסך של פלט שליפת הנתונים מהמבט (10 רשומות) -->
+  <img src="נתיב_לצילום_מבט_2_שליפה" alt="שליפת נתונים ממבט 2" width="700">
+</p>
+
+##### ❓ שאילתות על מבט 2:
+* **שאילתה 2.1:** מציאת מדריכים מנוסים (מעל 3 שנות ניסיון) שמנהלים לפחות קבוצה אחת, אך טרם שויך להם טיול פעיל בלוח הזמנים.
+  
+  **קוד השאילתה:**
+  ```sql
+  SELECT 
+      Guide_ID, 
+      Guide_Name, 
+      Experience_Years, 
+      Managed_Groups, 
+      Assigned_Trips
+  FROM Guide_Performance_View
+  WHERE Experience_Years > 3 AND Managed_Groups > 0 AND Assigned_Trips = 0
+  ORDER BY Experience_Years DESC;
+  ```
+  
+  **צילום פלט השאילתה:**
+  <p align="center">
+    <!-- הדביקי כאן צילום מסך של פלט שאילתה 1 על מבט 2 -->
+    <img src="נתיב_לצילום_שאילתה_1_מבט_2" alt="פלט שאילתה 2.1" width="700">
+  </p>
+
+* **שאילתה 2.2:** חישוב ממוצע הטיולים והאירועים המשויכים למדריכים לפי תחומי ההתמחות שלהם, כדי לבחון עומסים בין התמחויות שונות.
+  
+  **קוד השאילתה:**
+  ```sql
+  SELECT 
+      Guide_Specialization,
+      COUNT(Guide_ID) AS Number_Of_Guides,
+      ROUND(AVG(Assigned_Trips), 2) AS Avg_Assigned_Trips,
+      ROUND(AVG(Related_Events), 2) AS Avg_Related_Events
+  FROM Guide_Performance_View
+  GROUP BY Guide_Specialization
+  ORDER BY Avg_Assigned_Trips DESC;
+  ```
+  
+  **צילום פלט השאילתה:**
+  <p align="center">
+    <!-- הדביקי כאן צילום מסך של פלט שאילתה 2 על מבט 2 -->
+    <img src="נתיב_לצילום_שאילתה_2_מבט_2" alt="פלט שאילתה 2.2" width="700">
+  </p>
+
+---
+
+<a name="5-קובץ-גיבוי-מעודכן-backup3"></a>
+### 💾 5. קובץ גיבוי מעודכן (Backup3)
 
 קובץ הגיבוי המעודכן המכיל את כלל הישויות, קשרי הגומלין והנתונים לאחר תהליך האינטגרציה הכללית:
 * [צפייה בקובץ הגיבוי Backup3](./DBProject/8578_3938/שלב%20ג/Backup3)
