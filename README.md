@@ -879,10 +879,8 @@ CREATE INDEX idx_trip_startdate ON TRIP(StartDate);
 
 
 #### 🔹 תרשים DSD לאחר אינטגרציה (Combined DSD)
-<p align="center">
-  <!-- הדביקי כאן קישור לתמונת ה-DSD לאחר האינטגרציה -->
-  <img src="נתיב_לתמונת_DSD_משותף" alt="DSD לאחר אינטגרציה" width="700">
-</p>
+<img width="1989" height="1247" alt="Untitled (1)" src="https://github.com/user-attachments/assets/dd3c938d-5173-4626-91b6-b3c7e034f692" />
+
 
 ---
 
