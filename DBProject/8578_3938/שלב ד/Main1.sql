@@ -23,7 +23,7 @@ BEGIN
     RAISE NOTICE 'שלב ב: הקצאת % יחידות מפריט ציוד ID % לטיול ID %...', v_quantity, v_equip_id, v_trip_id;
     CALL allocate_equipment_to_trip(v_trip_id, v_equip_id, v_quantity);
     
-    -- 3. זימון פרוצדורה עם שגיאה בכוונה לצורך הדגמת טיפול בחריגות (Exception Handling)
+    -- 3. זימון פרוצדורה עם שגיאה לצורך הדגמת טיפול בחריגות (Exception Handling)
     BEGIN
         RAISE NOTICE 'שלב ג: ניסיון הקצאה של כמות מוגזמת (999999 יח) כדי להדגים שגיאה...';
         CALL allocate_equipment_to_trip(v_trip_id, v_equip_id, 999999);
