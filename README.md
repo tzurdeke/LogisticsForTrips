@@ -25,6 +25,8 @@
 8. [💾 גיבוי (Backup)](#גיבוי)
 9. [🚀 שלב ב' - מסד הנתונים](#שלב-ב)
 10. [🔮 שלב ג' - אינטגרציה](#אינטגרציה-עם-פרויקט-נוסף-שלב-ג)
+11. [⚙️ שלב ד' - תכנות (PL/pgSQL)](#שלב-ד)
+
 
 ---
 
@@ -1248,3 +1250,461 @@ GROUP BY G.guideid, G.GuideName, G.Specialization, G.ExperienceYears;
 
 קובץ הגיבוי המעודכן המכיל את כלל הישויות, קשרי הגומלין והנתונים לאחר תהליך האינטגרציה הכללית:
 * [צפייה בקובץ הגיבוי Backup3](./DBProject/8578_3938/שלב%20ג/Backup3)
+
+---
+
+<a name="שלב-ד"></a>
+## ⚙️ שלב ד' - תכנות ובדיקות (PL/pgSQL)
+
+בשלב זה כתבנו תוכניות לא טריוויאליות בשפת **PL/pgSQL** המורצות ישירות מעל בסיס הנתונים המשולב והמורחב של המערכת. התוכניות עושות שימוש בכלל האלמנטים המורכבים הנדרשים: סמנים (Cursors) מפורשים ומשתנים, לולאות, תנאים והסתעפויות, פקודות DML, טיפול מובנה בחריגות (Exceptions) ושימוש ברשומות דינמיות ומבוססות טבלה `%ROWTYPE`.
+
+**תוכן עניינים פנימי - שלב ד':**
+* [1. שינויים במבנה הטבלאות (AlterTable.sql)](#1-שינויים-במבנה-הטבלאות-altertablesql)
+* [2. פונקציות (Functions)](#2-פונקציות-functions)
+* [3. פרוצדורות (Procedures)](#3-פרוצדורות-procedures)
+* [4. טריגרים (Triggers)](#4-טריגרים-triggers)
+* [5. תוכניות ראשיות ובדיקות (Main Programs)](#5-תוכניות-ראשיות-ובדיקות-main-programs)
+* [6. קובץ גיבוי מעודכן (backup4)](#6-קובץ-גיבוי-מעודכן-backup4)
+
+---
+
+### 1. שינויים במבנה הטבלאות (AlterTable.sql)
+
+כדי לאפשר מעקב והתראות לוגיסטיות שנוצרות בזמן אמת עקב עדכונים בבסיס הנתונים, יצרנו טבלה חדשה בשם `logistics_warnings` שבה נרשמות התראות אוטומטיות.
+
+* **קוד הסקריפט:** [AlterTable.sql](./DBProject/8578_3938/שלב%20ד/AlterTable.sql)
+```sql
+CREATE TABLE IF NOT EXISTS logistics_warnings (
+    WarningID SERIAL PRIMARY KEY,
+    TripID INT,
+    WarningType VARCHAR(50) NOT NULL,
+    Message TEXT NOT NULL,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (TripID) REFERENCES TRIP(TripID) ON DELETE CASCADE
+);
+```
+
+#### 📸 הוכחת הרצה:
+הרצת הסקריפט עברה בהצלחה מול בסיס הנתונים:
+`CREATE TABLE`
+<!-- צילום מסך של יצירת הטבלה -->
+
+---
+
+### 2. פונקציות (Functions)
+
+#### 🔹 א. פונקציה 1: `get_available_equipment_report`
+* **תיאור מילולי:** פונקציה זו מקבלת מזהה ספק (`p_supplier_id`). היא בודקת תחילה אם הספק קיים במערכת (אם לא, נזרקת חריגה). לאחר מכן, היא פותחת ומחזירה **Ref Cursor** מפורש המכיל את רשימת פריטי הציוד המשויכים לספק, תוך חישוב של סך המלאי הקיים, הכמות המשוריינת כעת לטיולים פעילים (שטרם הוחזרו), והמלאי הנטו הזמין להשאלה מיידית.
+* **קוד הפונקציה:** [get_available_equipment_report.sql](./DBProject/8578_3938/שלב%20ד/get_available_equipment_report.sql)
+```sql
+CREATE OR REPLACE FUNCTION get_available_equipment_report(p_supplier_id INT)
+RETURNS REFCURSOR AS $$
+DECLARE
+    v_supplier_name VARCHAR(50);
+    ref_cursor REFCURSOR := 'equipment_cursor';
+BEGIN
+    SELECT Company_Name INTO v_supplier_name FROM SUPPLIER WHERE SupplierID = p_supplier_id;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Supplier with ID % not found', p_supplier_id;
+    END IF;
+    
+    OPEN ref_cursor FOR
+        SELECT 
+            E.EquipmentID,
+            E.ItemName,
+            E.TotalInStock,
+            COALESCE(SUM(TE.QuantityAllocated), 0) AS TotalAllocated,
+            E.TotalInStock - COALESCE(SUM(TE.QuantityAllocated), 0) AS NetAvailable
+        FROM EQUIPMENT E
+        LEFT JOIN TRIP_EQUIPMENT TE ON E.EquipmentID = TE.EquipmentID AND TE.Return_Date IS NULL
+        WHERE E.SupplierID = p_supplier_id
+        GROUP BY E.EquipmentID, E.ItemName, E.TotalInStock;
+        
+    RETURN ref_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error in get_available_equipment_report: %', SQLERRM;
+        RAISE;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### 🔹 ב. פונקציה 2: `check_trip_transport_capacity`
+* **תיאור מילולי:** פונקציה זו מקבלת מזהה טיול (`p_trip_id`). היא טוענת את רשומת הטיול לתוך משתנה רשומה מסוג `%ROWTYPE`. היא סופרת את כמות המשתתפים הרשומים לטיול, ואז משתמשת ב**סמן מפורש ובלולאה** כדי לעבור על כל כלי התחבורה שהוקצו לטיול ולסכם את קיבולת הנוסעים הכוללת שלהם. בסיום, היא משתמשת בהסתעפות כדי להחזיר הודעת סטטוס מפורטת: האם יש מספיק מקומות ישיבה, האם יש חוסר (וכמה מושבים חסרים), או שמא לא הוקצו הסעות בכלל.
+* **קוד הפונקציה:** [check_trip_transport_capacity.sql](./DBProject/8578_3938/שלב%20ד/check_trip_transport_capacity.sql)
+```sql
+CREATE OR REPLACE FUNCTION check_trip_transport_capacity(p_trip_id INT)
+RETURNS VARCHAR AS $$
+DECLARE
+    v_trip_record TRIP%ROWTYPE;
+    v_participant_count INT;
+    v_total_capacity INT := 0;
+    v_transport_rec RECORD;
+    v_result VARCHAR(200);
+    
+    v_transport_cursor CURSOR FOR 
+        SELECT TR.Capacity 
+        FROM TRIP_TRANSPORTATION TT
+        JOIN TRANSPORTATION TR ON TT.TransportID = TR.TransportID
+        WHERE TT.TripID = p_trip_id;
+BEGIN
+    SELECT * INTO v_trip_record FROM TRIP WHERE TripID = p_trip_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Trip with ID % not found', p_trip_id;
+    END IF;
+    
+    SELECT COUNT(*) INTO v_participant_count FROM REGISTERS_TO WHERE TripID = p_trip_id;
+    
+    OPEN v_transport_cursor;
+    LOOP
+        FETCH v_transport_cursor INTO v_transport_rec;
+        EXIT WHEN NOT FOUND;
+        v_total_capacity := v_total_capacity + v_transport_rec.Capacity;
+    END LOOP;
+    CLOSE v_transport_cursor;
+    
+    IF v_total_capacity = 0 THEN
+        v_result := 'WARNING: No transportation allocated for trip: ' || v_trip_record.TripName;
+    ELSIF v_total_capacity < v_participant_count THEN
+        v_result := 'INSUFFICIENT CAPACITY: ' || (v_participant_count - v_total_capacity) || ' participants lack seats.';
+    ELSE
+        v_result := 'SUFFICIENT: Total capacity (' || v_total_capacity || ') meets or exceeds registered participants (' || v_participant_count || ').';
+    END IF;
+    
+    RETURN v_result;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error in check_trip_transport_capacity: %', SQLERRM;
+        RAISE;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+---
+
+### 3. פרוצדורות (Procedures)
+
+#### 🔹 א. פרוצדורה 1: `allocate_equipment_to_trip`
+* **תיאור מילולי:** פרוצדורה זו מקבלת מזהה טיול, מזהה ציוד וכמות להקצאה. היא מבצעת ולידציות: האם הטיול והציוד קיימים, והאם הכמות המבוקשת חיובית ונמצאת במלאי. אם הכל תקין, היא מבצעת **פקודות DML**: במידה וכבר קיימת הקצאה לטיול היא מעדכנת אותה (`UPDATE`), ובמידה ולא - היא מוסיפה שורה חדשה (`INSERT`).
+* **קוד הפרוצדורה:** [allocate_equipment_to_trip.sql](./DBProject/8578_3938/שלב%20ד/allocate_equipment_to_trip.sql)
+```sql
+CREATE OR REPLACE PROCEDURE allocate_equipment_to_trip(
+    p_trip_id INT,
+    p_equipment_id INT,
+    p_quantity INT
+) AS $$
+DECLARE
+    v_trip_start DATE;
+    v_available_stock INT;
+    v_current_allocated INT;
+BEGIN
+    SELECT StartDate INTO v_trip_start FROM TRIP WHERE TripID = p_trip_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Trip with ID % not found', p_trip_id;
+    END IF;
+    
+    SELECT TotalInStock INTO v_available_stock FROM EQUIPMENT WHERE EquipmentID = p_equipment_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Equipment with ID % not found', p_equipment_id;
+    END IF;
+    
+    IF p_quantity <= 0 THEN
+        RAISE EXCEPTION 'Allocation quantity must be greater than zero. Provided: %', p_quantity;
+    END IF;
+
+    IF v_available_stock < p_quantity THEN
+        RAISE EXCEPTION 'Insufficient stock. Equipment ID: %, Available: %, Requested: %', 
+            p_equipment_id, v_available_stock, p_quantity;
+    END IF;
+    
+    SELECT QuantityAllocated INTO v_current_allocated 
+    FROM TRIP_EQUIPMENT 
+    WHERE TripID = p_trip_id AND EquipmentID = p_equipment_id;
+    
+    IF FOUND THEN
+        UPDATE TRIP_EQUIPMENT
+        SET QuantityAllocated = QuantityAllocated + p_quantity,
+            Checkout_Date = v_trip_start
+        WHERE TripID = p_trip_id AND EquipmentID = p_equipment_id;
+        
+        RAISE NOTICE 'Updated existing allocation. Added % units of Equipment % to Trip %.', 
+            p_quantity, p_equipment_id, p_trip_id;
+    ELSE
+        INSERT INTO TRIP_EQUIPMENT (TripID, EquipmentID, QuantityAllocated, Checkout_Date)
+        VALUES (p_trip_id, p_equipment_id, p_quantity, v_trip_start);
+        
+        RAISE NOTICE 'Created new allocation of % units of Equipment % to Trip %.', 
+            p_quantity, p_equipment_id, p_trip_id;
+    END IF;
+    
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Transaction aborted due to error in allocate_equipment_to_trip: %', SQLERRM;
+        RAISE;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+#### 🔹 ב. פרוצדורה 2: `register_participant_for_trip_secure`
+* **תיאור מילולי:** פרוצדורה המיועדת לרישום מאובטח ותקין של משתתף לטיול. היא מוודאת שהמשתתף והטיול קיימים, שהטיול מתוכנן לעתיד (ולא התחיל או הסתיים בעבר), ושיש מקום פנוי בקבוצה (סך הרשומים קטן מ-`GroupSize`). במידה והבדיקות עוברות, מבוצעת פקודת DML מסוג `INSERT` לטבלת `registers_to`.
+* **קוד הפרוצדורה:** [register_participant_for_trip_secure.sql](./DBProject/8578_3938/שלב%20ד/register_participant_for_trip_secure.sql)
+```sql
+CREATE OR REPLACE PROCEDURE register_participant_for_trip_secure(
+    p_participant_id INT,
+    p_trip_id INT
+) AS $$
+DECLARE
+    v_trip_name VARCHAR(50);
+    v_trip_start DATE;
+    v_group_size INT;
+    v_current_registrations INT;
+    v_part_exists INT;
+BEGIN
+    SELECT 1 INTO v_part_exists FROM PARTICIPANT WHERE ParticipantID = p_participant_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Participant with ID % does not exist', p_participant_id;
+    END IF;
+    
+    SELECT TripName, StartDate, GroupSize INTO v_trip_name, v_trip_start, v_group_size 
+    FROM TRIP WHERE TripID = p_trip_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Trip with ID % does not exist', p_trip_id;
+    END IF;
+    
+    IF v_trip_start < CURRENT_DATE THEN
+        RAISE EXCEPTION 'Cannot register for a trip that has already started or ended. Start Date: %', v_trip_start;
+    END IF;
+    
+    SELECT COUNT(*) INTO v_current_registrations FROM REGISTERS_TO WHERE TripID = p_trip_id;
+    
+    IF v_current_registrations >= v_group_size THEN
+        RAISE EXCEPTION 'Trip % has reached maximum capacity of % participants', v_trip_name, v_group_size;
+    END IF;
+    
+    INSERT INTO REGISTERS_TO (ParticipantID, TripID)
+    VALUES (p_participant_id, p_trip_id);
+    
+    RAISE NOTICE 'Successfully registered Participant % for Trip % (%)', 
+        p_participant_id, p_trip_id, v_trip_name;
+        
+EXCEPTION
+    WHEN unique_violation THEN
+        RAISE NOTICE 'Participant % is already registered for Trip % (Unique violation caught)', p_participant_id, p_trip_id;
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error in register_participant_for_trip_secure: %', SQLERRM;
+        RAISE;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+---
+
+### 4. טריגרים (Triggers)
+
+#### 🔹 א. טריגר 1 (BEFORE INSERT OR UPDATE): `trg_check_equipment_stock`
+* **תיאור מילולי:** מופעל לפני עדכון או הוספת רשומה בטבלת הקצאות הציוד `trip_equipment`. הטריגר מונע מצב של רישום הקצאת ציוד הגבוהה מהמלאי הפיזי הזמין. הוא מחשב את סך ההקצאות הפעילות הקיימות (שטרם הוחזרו - `Return_Date IS NULL`) ומוודא שההקצאה החדשה לא תביא לחריגה מהמלאי הכולל שבטבלת `equipment`. במקרה של חריגה, נזרקת שגיאה שמכשילה את עסקת ה-DML.
+* **קוד הטריגר:** [trg_check_equipment_stock.sql](./DBProject/8578_3938/שלב%20ד/trg_check_equipment_stock.sql)
+```sql
+CREATE OR REPLACE FUNCTION check_equipment_stock_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_total_stock INT;
+    v_allocated_active INT;
+BEGIN
+    SELECT TotalInStock INTO v_total_stock FROM EQUIPMENT WHERE EquipmentID = NEW.EquipmentID;
+    
+    SELECT COALESCE(SUM(QuantityAllocated), 0) INTO v_allocated_active
+    FROM TRIP_EQUIPMENT
+    WHERE EquipmentID = NEW.EquipmentID 
+      AND Return_Date IS NULL
+      AND TripID != NEW.TripID;
+      
+    IF NEW.Return_Date IS NULL THEN
+        v_allocated_active := v_allocated_active + NEW.QuantityAllocated;
+    END IF;
+    
+    IF v_allocated_active > v_total_stock THEN
+        RAISE EXCEPTION 'Cannot allocate % units of Equipment ID %. Total stock is %, while active allocations would reach %.', 
+            NEW.QuantityAllocated, NEW.EquipmentID, v_total_stock, v_allocated_active;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_check_equipment_stock ON TRIP_EQUIPMENT;
+CREATE TRIGGER trg_check_equipment_stock
+BEFORE INSERT OR UPDATE ON TRIP_EQUIPMENT
+FOR EACH ROW
+EXECUTE FUNCTION check_equipment_stock_trigger();
+```
+
+##### 📸 הוכחת הרצה וזריקת שגיאה:
+כאשר ניסינו לעדכן הקצאת ציוד מסוג ID 2 (שיש ממנו במלאי 16 יחידות והכול כבר מוקצה) ל-11 יחידות, הטריגר זרק את השגיאה הבאה ומנע את העדכון:
+```
+ERROR:  Cannot allocate 11 units of Equipment ID 2. Total stock is 16, while active allocations would reach 17.
+CONTEXT:  PL/pgSQL function check_equipment_stock_trigger() line 23 at RAISE
+```
+<!-- צילום מסך של שגיאת מלאי מהטריגר -->
+
+---
+
+#### 🔹 ב. טריגר 2 (AFTER UPDATE): `trg_audit_trip_changes`
+* **תיאור מילולי:** מופעל לאחר עדכון שורות בטבלת הטיולים `trip`. הטריגר מיועד לבקרה לוגיסטית: במידה וגודל הקבוצה (`GroupSize`) עודכן כלפי מעלה, הוא בודק האם קיבולת ההסעות המשויכת לטיול עדיין מספקת. במידה ולא, הטריגר רושם אוטומטית התראה לוגיסטית חדשה (באמצעות פקודת `INSERT`) בטבלה החדשה `logistics_warnings`.
+* **קוד הטריגר:** [trg_audit_trip_changes.sql](./DBProject/8578_3938/שלב%20ד/trg_audit_trip_changes.sql)
+```sql
+CREATE OR REPLACE FUNCTION audit_trip_changes_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_total_capacity INT := 0;
+BEGIN
+    IF NEW.GroupSize > OLD.GroupSize THEN
+        SELECT COALESCE(SUM(TR.Capacity), 0) INTO v_total_capacity
+        FROM TRIP_TRANSPORTATION TT
+        JOIN TRANSPORTATION TR ON TT.TransportID = TR.TransportID
+        WHERE TT.TripID = NEW.TripID;
+        
+        IF v_total_capacity < NEW.GroupSize THEN
+            INSERT INTO logistics_warnings (TripID, WarningType, Message)
+            VALUES (
+                NEW.TripID, 
+                'TRANSPORT_UNDER_CAPACITY',
+                'Trip group size increased from ' || OLD.GroupSize || ' to ' || NEW.GroupSize || 
+                ', which exceeds current allocated transportation capacity of ' || v_total_capacity || ' seats.'
+            );
+            RAISE NOTICE 'AUDIT: Logistics warning logged for Trip % (GroupSize % exceeds transport capacity %)', 
+                NEW.TripID, NEW.GroupSize, v_total_capacity;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_audit_trip_changes ON TRIP;
+CREATE TRIGGER trg_audit_trip_changes
+AFTER UPDATE ON TRIP
+FOR EACH ROW
+EXECUTE FUNCTION audit_trip_changes_trigger();
+```
+
+##### 📸 הוכחת הרצה ועדכון בסיס הנתונים:
+כאשר הרצנו עדכון המגדיל את גודל קבוצת טיול ID 1 ל-100 משתתפים (כאשר קיבולת הרכבים שהוזמנו היא 75), פלט הריצה הראה על רישום מוצלח של ההתראה:
+```
+NOTICE:  AUDIT: Logistics warning logged for Trip 1 (GroupSize 100 exceeds transport capacity 75)
+UPDATE 1
+```
+שאילתת `SELECT * FROM logistics_warnings;` מוכיחה שהנתונים אכן התעדכנו בבסיס הנתונים:
+```
+ warningid | tripid |       warningtype        |                                                    message                                                     |         createdat          
+-----------+--------+--------------------------+----------------------------------------------------------------------------------------------------------------+----------------------------
+         1 |      1 | TRANSPORT_UNDER_CAPACITY | Trip group size increased from 16 to 100, which exceeds current allocated transportation capacity of 75 seats. | 2026-06-07 16:00:19.705711
+(1 row)
+```
+<!-- צילום מסך של פלט ה-UPDATE ושאילתת ה-SELECT על טבלת ההתראות -->
+
+---
+
+### 5. תוכניות ראשיות ובדיקות (Main Programs)
+
+#### 🔹 א. תוכנית ראשית 1 (`Main1.sql`)
+* **תיאור מילולי:** תוכנית ראשית המזמנת את פונקציה 2 (`check_trip_transport_capacity`) לקבלת סטטוס ההסעות של טיול, ואת פרוצדורה 1 (`allocate_equipment_to_trip`) להקצאה תקינה של ציוד. בנוסף, היא מדגימה טיפול בחריגות על ידי ניסיון הקצאה של כמות גדולה מהמלאי תוך לכידת השגיאה והדפסתה.
+* **קוד התוכנית:** [Main1.sql](./DBProject/8578_3938/שלב%20ד/Main1.sql)
+```sql
+DO $$
+DECLARE
+    v_status VARCHAR(200);
+    v_trip_id INT := 1;        -- מזהה טיול קיים
+    v_equip_id INT := 2;       -- מזהה פריט ציוד קיים
+    v_quantity INT := 5;       -- כמות להקצאה
+BEGIN
+    RAISE NOTICE '==================================================';
+    RAISE NOTICE 'התחלת תוכנית ראשית 1: בדיקת הסעות והקצאת ציוד';
+    RAISE NOTICE '==================================================';
+    
+    RAISE NOTICE 'שלב א: בדיקת התאמת קיבולת ההסעות לטיול ID %...', v_trip_id;
+    v_status := check_trip_transport_capacity(v_trip_id);
+    RAISE NOTICE 'סטטוס קיבולת הסעות: %', v_status;
+    
+    RAISE NOTICE 'שלב ב: הקצאת % יחידות מפריט ציוד ID % לטיול ID %...', v_quantity, v_equip_id, v_trip_id;
+    CALL allocate_equipment_to_trip(v_trip_id, v_equip_id, v_quantity);
+    
+    BEGIN
+        RAISE NOTICE 'שלב ג: ניסיון הקצאה של כמות מוגזמת (999999 יח) כדי להדגים שגיאה...';
+        CALL allocate_equipment_to_trip(v_trip_id, v_equip_id, 999999);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'נלכדה חריגה צפויה בהקצאת ציוד: %', SQLERRM;
+    END;
+
+    RAISE NOTICE '==================================================';
+    RAISE NOTICE 'תוכנית ראשית 1 הסתיימה בהצלחה!';
+    RAISE NOTICE '==================================================';
+END $$;
+```
+
+##### 📸 פלט הרצה מלא (Messages):
+<!-- צילום מסך של פלט הרצה ראשית 1 -->
+
+---
+
+#### 🔹 ב. תוכנית ראשית 2 (`Main2.sql`)
+* **תיאור מילולי:** תוכנית ראשית המזמנת את פונקציה 1 (`get_available_equipment_report`) המייצרת Ref Cursor. התוכנית פותחת את הסמן, עוברת בלולאה על כל שורות התוצאה ומדפיסה את פרטי הציוד והמלאי הקיים והזמין של הספק. לאחר מכן, היא מזמנת את פרוצדורה 2 (`register_participant_for_trip_secure`) לצורך רישום תקין של משתתף לטיול עתידי, ומדגימה טיפול בחריגות על ידי ניסיון רישום של מזהה משתתף שלילי שאינו קיים.
+* **קוד התוכנית:** [Main2.sql](./DBProject/8578_3938/שלב%20ד/Main2.sql)
+```sql
+DO $$
+DECLARE
+    v_cursor REFCURSOR;
+    v_equip_id INT;
+    v_item_name VARCHAR(50);
+    v_total_stock INT;
+    v_allocated INT;
+    v_net_available INT;
+    
+    v_supplier_id INT := 1;      -- מזהה ספק קיים
+    v_participant_id INT := 5;   -- מזהה משתתף קיים
+    v_trip_id INT := 3;          -- מזהה טיול קיים בעתיד (למשל Trip 3 מתחיל באוקטובר 2026)
+BEGIN
+    RAISE NOTICE '==================================================';
+    RAISE NOTICE 'התחלת תוכנית ראשית 2: קריאת סמנים ורישום משתתף';
+    RAISE NOTICE '==================================================';
+    
+    RAISE NOTICE 'שלב א: שליפת דוח ציוד עבור ספק ID %...', v_supplier_id;
+    v_cursor := get_available_equipment_report(v_supplier_id);
+    
+    RAISE NOTICE 'הדפסת פריטי הציוד של הספק מתוך ה-Cursor:';
+    LOOP
+        FETCH v_cursor INTO v_equip_id, v_item_name, v_total_stock, v_allocated, v_net_available;
+        EXIT WHEN NOT FOUND;
+        RAISE NOTICE '  * קוד ציוד: %, שם: %, מלאי כללי: %, הוקצה: %, זמין נטו: %',
+            v_equip_id, v_item_name, v_total_stock, v_allocated, v_net_available;
+    END LOOP;
+    CLOSE v_cursor;
+    
+    RAISE NOTICE 'שלב ב: רישום משתתף ID % לטיול ID %...', v_participant_id, v_trip_id;
+    CALL register_participant_for_trip_secure(v_participant_id, v_trip_id);
+    
+    BEGIN
+        RAISE NOTICE 'שלב ג: ניסיון רישום משתתף לא קיים כדי להדגים שגיאה...';
+        CALL register_participant_for_trip_secure(-9999, v_trip_id);
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'נלכדה חריגה צפויה ברישום משתתף: %', SQLERRM;
+    END;
+    
+    RAISE NOTICE '==================================================';
+    RAISE NOTICE 'תוכנית ראשית 2 הסתיימה בהצלחה!';
+    RAISE NOTICE '==================================================';
+END $$;
+```
+
+##### 📸 פלט הרצה מלא (Messages):
+<!-- צילום מסך של פלט הרצה ראשית 2 -->
+
+---
+
+### 6. קובץ גיבוי מעודכן (backup4)
+
+קובץ הגיבוי המעודכן המכיל את כלל הישויות, קשרי הגומלין, הנתונים, הפונקציות, הפרוצדורות והטריגרים לאחר סיום שלב ד':
+* [צפייה בקובץ הגיבוי backup4](./DBProject/8578_3938/שלב%20ד/backup4)
+
