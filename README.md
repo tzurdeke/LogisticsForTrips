@@ -1329,7 +1329,11 @@ EXCEPTION
         RAISE;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
 ```
+<img width="512" height="260" alt="image" src="https://github.com/user-attachments/assets/bfeaed7f-3934-413d-b8a8-b460a350b220" />
 
 #### 🔹 ב. פונקציה 2: `check_trip_transport_capacity`
 * **תיאור מילולי:** פונקציה זו מקבלת מזהה טיול (`p_trip_id`). היא טוענת את רשומת הטיול לתוך משתנה רשומה מסוג `%ROWTYPE`. היא סופרת את כמות המשתתפים הרשומים לטיול, ואז משתמשת ב**סמן מפורש ובלולאה** כדי לעבור על כל כלי התחבורה שהוקצו לטיול ולסכם את קיבולת הנוסעים הכוללת שלהם. בסיום, היא משתמשת בהסתעפות כדי להחזיר הודעת סטטוס מפורטת: האם יש מספיק מקומות ישיבה, האם יש חוסר (וכמה מושבים חסרים), או שמא לא הוקצו הסעות בכלל.
@@ -1380,7 +1384,11 @@ EXCEPTION
         RAISE;
 END;
 $$ LANGUAGE plpgsql;
+
+
+
 ```
+<img width="512" height="262" alt="image" src="https://github.com/user-attachments/assets/52fb6fca-990b-4419-9aab-25733195cb20" />
 
 ---
 
@@ -1445,7 +1453,10 @@ EXCEPTION
         RAISE;
 END;
 $$ LANGUAGE plpgsql;
+
+
 ```
+<img width="512" height="251" alt="image" src="https://github.com/user-attachments/assets/8f4b4a5e-be8f-4cce-8627-bb5368e62b09" />
 
 #### 🔹 ב. פרוצדורה 2: `register_participant_for_trip_secure`
 * **תיאור מילולי:** פרוצדורה המיועדת לרישום מאובטח ותקין של משתתף לטיול. היא מוודאת שהמשתתף והטיול קיימים, שהטיול מתוכנן לעתיד (ולא התחיל או הסתיים בעבר), ושיש מקום פנוי בקבוצה (סך הרשומים קטן מ-`GroupSize`). במידה והבדיקות עוברות, מבוצעת פקודת DML מסוג `INSERT` לטבלת `registers_to`.
@@ -1497,8 +1508,9 @@ EXCEPTION
         RAISE;
 END;
 $$ LANGUAGE plpgsql;
-```
 
+```
+<img width="512" height="255" alt="image" src="https://github.com/user-attachments/assets/3dfc4092-255c-4d09-aa94-67da7116dd01" />
 ---
 
 ### 4. טריגרים (Triggers)
@@ -1547,7 +1559,8 @@ EXECUTE FUNCTION check_equipment_stock_trigger();
 ERROR:  Cannot allocate 11 units of Equipment ID 2. Total stock is 16, while active allocations would reach 17.
 CONTEXT:  PL/pgSQL function check_equipment_stock_trigger() line 23 at RAISE
 ```
-<!-- צילום מסך של שגיאת מלאי מהטריגר -->
+<img width="512" height="169" alt="image" src="https://github.com/user-attachments/assets/f138d9dd-252d-4658-b9da-3fcb0f7eac86" />
+
 
 ---
 
@@ -1602,7 +1615,7 @@ UPDATE 1
          1 |      1 | TRANSPORT_UNDER_CAPACITY | Trip group size increased from 16 to 100, which exceeds current allocated transportation capacity of 75 seats. | 2026-06-07 16:00:19.705711
 (1 row)
 ```
-<!-- צילום מסך של פלט ה-UPDATE ושאילתת ה-SELECT על טבלת ההתראות -->
+<img width="512" height="124" alt="image" src="https://github.com/user-attachments/assets/2d6eaf10-3ded-4d05-8454-c3cb5b6d3252" />
 
 ---
 
@@ -1645,7 +1658,7 @@ END $$;
 ```
 
 ##### 📸 פלט הרצה מלא (Messages):
-<!-- צילום מסך של פלט הרצה ראשית 1 -->
+<img width="512" height="258" alt="image" src="https://github.com/user-attachments/assets/f928ad56-6c0a-4ad3-ad52-0136101777c4" />
 
 ---
 
@@ -1700,13 +1713,14 @@ END $$;
 ```
 
 ##### 📸 פלט הרצה מלא (Messages):
-<!-- צילום מסך של פלט הרצה ראשית 2 -->
+<img width="512" height="331" alt="image" src="https://github.com/user-attachments/assets/892eb061-f9ec-4e6a-b63c-923496a9e588" />
 
 ---
 
 ### 6. קובץ גיבוי מעודכן (backup4)
 
 קובץ הגיבוי המעודכן המכיל את כלל הישויות, קשרי הגומלין, הנתונים, הפונקציות, הפרוצדורות והטריגרים לאחר סיום שלב ד':
+<<<<<<< HEAD
 * [צפייה בקובץ הגיבוי backup4](./DBProject/8578_3938/שלב%20ד/backup4)
 
 
@@ -1783,3 +1797,6 @@ END $$;
 <!-- כאן יש לשתול את תמונות המסך -->
 > **מגישות יקרות, אל תשכחו לצלם את מסך הבית, מסך טיולים (כולל הדגמת לחיצה על עדכון), מסך שאילתות ומסך תתי תוכניות, ולהדביק אותם כאן!**
 
+=======
+* [צפייה בקובץ הגיבוי backup4](./DBProject/8578_3938/שלב%20ד/backup4)
+>>>>>>> bb5f4ac5ca38e98c39057f5f253f5b8d39b2f788
