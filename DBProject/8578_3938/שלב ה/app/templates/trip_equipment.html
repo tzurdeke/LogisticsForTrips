@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}ציוד לטיולים{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📦 ציוד לטיולים</h1>
+  <p>הקצאה, עדכון ומחיקת ציוד המשויך לטיולים</p>
+</div>
+
+<div class="card">
+  <div class="card-title"><span>➕</span> הקצאת ציוד לטיול</div>
+  <form method="POST" action="/trip_equipment/add">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>טיול</label>
+        <select name="tripid" required>
+          <option value="">-- בחר טיול --</option>
+          {% for t in trips_list %}
+            <option value="{{ t.tripid }}">{{ t.tripname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>פריט ציוד</label>
+        <select name="equipmentid" required>
+          <option value="">-- בחר ציוד --</option>
+          {% for e in equipment_list %}
+            <option value="{{ e.equipmentid }}">{{ e.itemname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>כמות</label>
+        <input type="number" name="quantityallocated" value="1" min="1" required>
+      </div>
+      <div class="form-group">
+        <label>תאריך שאילה</label>
+        <input type="date" name="checkout_date" required>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">➕ הקצה ציוד</button>
+    </div>
+  </form>
+</div>
+
+<!-- Update form -->
+<div class="card">
+  <div class="card-title"><span>✏️</span> עדכון הקצאת ציוד קיימת</div>
+  <form method="POST" action="/trip_equipment/update">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>טיול</label>
+        <select name="tripid" required>
+          <option value="">-- בחר טיול --</option>
+          {% for t in trips_list %}
+            <option value="{{ t.tripid }}">{{ t.tripname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>פריט ציוד</label>
+        <select name="equipmentid" required>
+          <option value="">-- בחר ציוד --</option>
+          {% for e in equipment_list %}
+            <option value="{{ e.equipmentid }}">{{ e.itemname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>כמות מעודכנת</label>
+        <input type="number" name="quantityallocated" value="1" min="1" required>
+      </div>
+      <div class="form-group">
+        <label>תאריך החזרה (אופציונלי)</label>
+        <input type="date" name="return_date">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">💾 עדכן הקצאה</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title"><span>📋</span> הקצאות ציוד לטיולים ({{ rows|length }})</div>
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>שם טיול</th><th>פריט ציוד</th><th>כמות</th><th>תאריך שאילה</th><th>תאריך החזרה</th><th>פעולות</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.tripname }}</strong></td>
+          <td>{{ r.itemname }}</td>
+          <td><span class="badge badge-cyan">{{ r.quantityallocated }}</span></td>
+          <td>{{ r.checkout_date }}</td>
+          <td>
+            {% if r.return_date %}
+              <span class="badge badge-green">{{ r.return_date }}</span>
+            {% else %}
+              <span class="badge badge-red">לא הוחזר</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/trip_equipment/delete/{{ r.tripid }}/{{ r.equipmentid }}"
+               class="btn btn-danger btn-sm"
+               data-confirm="למחוק הקצאה זו?">🗑️ מחק</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state"><div class="empty-icon">📦</div><p>אין הקצאות ציוד</p></div>
+  {% endif %}
+</div>
+{% endblock %}

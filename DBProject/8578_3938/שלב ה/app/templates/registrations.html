@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}רישום משתתפים לטיולים{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📋 רישום משתתפים לטיולים</h1>
+  <p>שיוך ומחיקת רישומי משתתפים לטיולים</p>
+</div>
+
+<div class="card">
+  <div class="card-title"><span>➕</span> רישום משתתף לטיול</div>
+  <form method="POST" action="/registrations/add">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>משתתף</label>
+        <select name="participantid" required>
+          <option value="">-- בחר משתתף --</option>
+          {% for p in participants_list %}
+            <option value="{{ p.participantid }}">{{ p.fullname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>טיול</label>
+        <select name="tripid" required>
+          <option value="">-- בחר טיול --</option>
+          {% for t in trips_list %}
+            <option value="{{ t.tripid }}">{{ t.tripname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">➕ רשום משתתף</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title"><span>📋</span> רשימת רישומים ({{ rows|length }})</div>
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>שם משתתף</th><th>שם טיול</th><th>פעולות</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.participant_name }}</strong></td>
+          <td>{{ r.tripname }}</td>
+          <td>
+            <a href="/registrations/delete/{{ r.participantid }}/{{ r.tripid }}"
+               class="btn btn-danger btn-sm"
+               data-confirm="למחוק רישום זה?">🗑️ מחק</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state"><div class="empty-icon">📋</div><p>אין רישומים במערכת</p></div>
+  {% endif %}
+</div>
+{% endblock %}

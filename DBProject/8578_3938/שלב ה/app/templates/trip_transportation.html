@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}הסעות לטיולים{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🚍 הסעות לטיולים</h1>
+  <p>שיוך רכבי הסעה לטיולים עם זמני יציאה והגעה</p>
+</div>
+
+<div class="card">
+  <div class="card-title"><span>➕</span> שיוך הסעה לטיול</div>
+  <form method="POST" action="/trip_transportation/add">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>טיול</label>
+        <select name="tripid" required>
+          <option value="">-- בחר טיול --</option>
+          {% for t in trips_list %}
+            <option value="{{ t.tripid }}">{{ t.tripname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>רכב הסעה</label>
+        <select name="transportid" required>
+          <option value="">-- בחר רכב --</option>
+          {% for tr in transport_list %}
+            <option value="{{ tr.transportid }}">{{ tr.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>זמן יציאה</label>
+        <input type="datetime-local" name="departure_date_time" required>
+      </div>
+      <div class="form-group">
+        <label>זמן הגעה</label>
+        <input type="datetime-local" name="arrival_date_time" required>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">➕ שייך הסעה</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-title"><span>📋</span> הסעות לטיולים ({{ rows|length }})</div>
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>שם טיול</th><th>סוג רכב</th><th>ספק</th><th>יציאה</th><th>הגעה</th><th>פעולות</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.tripname }}</strong></td>
+          <td>{{ r.vehicle_type }}</td>
+          <td>{{ r.supplier_name }}</td>
+          <td>{{ r.departure_date_time }}</td>
+          <td>{{ r.arrival_date_time }}</td>
+          <td>
+            <a href="/trip_transportation/delete/{{ r.tripid }}/{{ r.transportid }}"
+               class="btn btn-danger btn-sm"
+               data-confirm="למחוק שיוך הסעה זה?">🗑️ מחק</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state"><div class="empty-icon">🚍</div><p>אין שיוכי הסעות לטיולים</p></div>
+  {% endif %}
+</div>
+{% endblock %}

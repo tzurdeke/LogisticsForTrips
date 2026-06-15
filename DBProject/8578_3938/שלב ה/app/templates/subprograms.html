@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}פרוצדורות ופונקציות – שלב ד'{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>⚙️ פרוצדורות ופונקציות – שלב ד'</h1>
+  <p>הפעלת Sub-Programs מתוך ממשק המשתמש</p>
+</div>
+
+<!-- Function 1: check_trip_transport_capacity -->
+<div class="prog-card">
+  <div class="prog-card-header">
+    <div class="prog-icon">🚌</div>
+    <div>
+      <div class="prog-title">פונקציה 1 – בדיקת קיבולת הסעות לטיול</div>
+      <div class="prog-desc"><code>check_trip_transport_capacity(trip_id)</code> – האם ההסעות מספיקות למשתתפים?</div>
+    </div>
+  </div>
+  <form method="POST" action="/subprograms">
+    <input type="hidden" name="prog_name" value="check_capacity">
+    <div class="form-grid" style="max-width:400px;">
+      <div class="form-group">
+        <label>בחר טיול</label>
+        <select name="trip_id" required>
+          <option value="">-- בחר טיול --</option>
+          {% for t in trips_list %}
+            <option value="{{ t.tripid }}" {% if prog_name=='check_capacity' and result %}selected{% endif %}>{{ t.tripname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">▶️ הרץ פונקציה</button>
+    </div>
+  </form>
+  {% if prog_name == 'check_capacity' %}
+    <div class="result-box {% if error %}result-error{% elif result and 'SUFFICIENT' in result %}result-success{% else %}result-info{% endif %}">
+      {% if error %}❌ {{ error }}{% else %}{{ result }}{% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Function 2: get_available_equipment_report -->
+<div class="prog-card">
+  <div class="prog-card-header">
+    <div class="prog-icon">📋</div>
+    <div>
+      <div class="prog-title">פונקציה 2 – דו"ח ציוד זמין לפי ספק</div>
+      <div class="prog-desc"><code>get_available_equipment_report(supplier_id)</code> – REFCURSOR עם מלאי נטו זמין</div>
+    </div>
+  </div>
+  <form method="POST" action="/subprograms">
+    <input type="hidden" name="prog_name" value="equipment_report">
+    <div class="form-grid" style="max-width:400px;">
+      <div class="form-group">
+        <label>בחר ספק</label>
+        <select name="supplier_id" required>
+          <option value="">-- בחר ספק --</option>
+          {% for s in suppliers_list %}
+            <option value="{{ s.supplierid }}">{{ s.company_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">▶️ הרץ פונקציה</button>
+    </div>
+  </form>
+  {% if prog_name == 'equipment_report' %}
+    {% if error %}
+      <div class="result-box result-error">❌ {{ error }}</div>
+    {% elif result %}
+      <div class="table-wrap mt-16">
+        <table>
+          <thead>
+            <tr>
+              <th>שם פריט</th>
+              <th>מלאי כולל</th>
+              <th>מוקצה</th>
+              <th>זמין נטו</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in result %}
+            <tr>
+              <td><strong>{{ row.itemname }}</strong></td>
+              <td>{{ row.totalinstock }}</td>
+              <td>{{ row.totalallocated }}</td>
+              <td>
+                <span class="badge {% if row.netavailable > 10 %}badge-green{% elif row.netavailable > 0 %}badge-yellow{% else %}badge-red{% endif %}">
+                  {{ row.netavailable }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="result-box result-info">ℹ️ לא נמצא ציוד עבור ספק זה</div>
+    {% endif %}
+  {% endif %}
+</div>
+
+<!-- Procedure 1: allocate_equipment_to_trip -->
+<div class="prog-card">
+  <div class="prog-card-header">
+    <div class="prog-icon">📦</div>
+    <div>
+      <div class="prog-title">פרוצדורה 1 – הקצאת ציוד לטיול</div>
+      <div class="prog-desc"><code>allocate_equipment_to_trip(trip_id, equipment_id, quantity)</code> – בודקת מלאי ומבצעת INSERT/UPDATE</div>
+    </div>
+  </div>
+  <form method="POST" action="/subprograms">
+    <input type="hidden" name="prog_name" value="allocate_equipment">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>טיול</label>
+        <select name="trip_id" required>
+          <option value="">-- בחר טיול --</option>
+          {% for t in trips_list %}
+            <option value="{{ t.tripid }}">{{ t.tripname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>פריט ציוד</label>
+        <select name="equipment_id" required>
+          <option value="">-- בחר ציוד --</option>
+          {% for e in equipment_list %}
+            <option value="{{ e.equipmentid }}">{{ e.itemname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>כמות</label>
+        <input type="number" name="quantity" value="1" min="1" required>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">▶️ הרץ פרוצדורה</button>
+    </div>
+  </form>
+  {% if prog_name == 'allocate_equipment' %}
+    <div class="result-box {% if error or (result and '❌' in result) %}result-error{% else %}result-success{% endif %}">
+      {% if error %}❌ {{ error }}{% else %}{{ result }}{% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Procedure 2: register_participant_for_trip_secure -->
+<div class="prog-card">
+  <div class="prog-card-header">
+    <div class="prog-icon">👤</div>
+    <div>
+      <div class="prog-title">פרוצדורה 2 – רישום מאובטח לטיול</div>
+      <div class="prog-desc"><code>register_participant_for_trip_secure(participant_id, trip_id)</code> – בדיקות קיבולת ועתיד לפני רישום</div>
+    </div>
+  </div>
+  <form method="POST" action="/subprograms">
+    <input type="hidden" name="prog_name" value="register_participant">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>משתתף</label>
+        <select name="participant_id" required>
+          <option value="">-- בחר משתתף --</option>
+          {% for p in participants_list %}
+            <option value="{{ p.participantid }}">{{ p.fullname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>טיול</label>
+        <select name="trip_id" required>
+          <option value="">-- בחר טיול --</option>
+          {% for t in trips_list %}
+            <option value="{{ t.tripid }}">{{ t.tripname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">▶️ הרץ פרוצדורה</button>
+    </div>
+  </form>
+  {% if prog_name == 'register_participant' %}
+    <div class="result-box {% if error or (result and '❌' in result) %}result-error{% else %}result-success{% endif %}">
+      {% if error %}❌ {{ error }}{% else %}{{ result }}{% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

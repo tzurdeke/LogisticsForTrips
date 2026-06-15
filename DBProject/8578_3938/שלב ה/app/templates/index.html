@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}לוח בקרה{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🧭 לוח בקרה – מערכת ניהול לוגיסטיקה לטיולים</h1>
+  <p>ברוכות הבאות! ניהול מלא של ציוד, הסעות, ספקים ומשתתפים בטיולים קבוצתיים.</p>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">✈️</div>
+    <div class="stat-number">{{ stats.trips }}</div>
+    <div class="stat-label">טיולים במערכת</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div class="stat-number">{{ stats.participants }}</div>
+    <div class="stat-label">משתתפים רשומים</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🎒</div>
+    <div class="stat-number">{{ stats.equipment }}</div>
+    <div class="stat-label">פריטי ציוד</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🏢</div>
+    <div class="stat-number">{{ stats.suppliers }}</div>
+    <div class="stat-label">ספקים פעילים</div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="card">
+  <div class="card-title"><span>📂</span> ניהול טבלאות</div>
+  <div class="nav-grid">
+    <a href="/trips" class="nav-card">
+      <div class="nav-icon">✈️</div>
+      <div class="nav-label">טיולים</div>
+      <div class="nav-desc">הוספה, עדכון, מחיקה ושליפה</div>
+    </a>
+    <a href="/participants" class="nav-card">
+      <div class="nav-icon">👥</div>
+      <div class="nav-label">משתתפים</div>
+      <div class="nav-desc">ניהול פרטי משתתפים</div>
+    </a>
+    <a href="/suppliers" class="nav-card">
+      <div class="nav-icon">🏢</div>
+      <div class="nav-label">ספקים</div>
+      <div class="nav-desc">ספקי ציוד והסעות</div>
+    </a>
+    <a href="/equipment" class="nav-card">
+      <div class="nav-icon">🎒</div>
+      <div class="nav-label">ציוד</div>
+      <div class="nav-desc">מלאי ציוד לטיולים</div>
+    </a>
+    <a href="/transportation" class="nav-card">
+      <div class="nav-icon">🚌</div>
+      <div class="nav-label">הסעות</div>
+      <div class="nav-desc">ניהול רכבי הסעה</div>
+    </a>
+    <a href="/locations" class="nav-card">
+      <div class="nav-icon">📍</div>
+      <div class="nav-label">מיקומים</div>
+      <div class="nav-desc">יעדי טיול ומסלולים</div>
+    </a>
+    <a href="/registrations" class="nav-card">
+      <div class="nav-icon">📋</div>
+      <div class="nav-label">רישום לטיול</div>
+      <div class="nav-desc">שיוך משתתפים לטיולים</div>
+    </a>
+    <a href="/trip_equipment" class="nav-card">
+      <div class="nav-icon">📦</div>
+      <div class="nav-label">ציוד לטיול</div>
+      <div class="nav-desc">הקצאת ציוד לטיולים</div>
+    </a>
+    <a href="/trip_transportation" class="nav-card">
+      <div class="nav-icon">🚍</div>
+      <div class="nav-label">הסעות לטיול</div>
+      <div class="nav-desc">שיוך הסעות לטיולים</div>
+    </a>
+    <a href="/location_trip" class="nav-card">
+      <div class="nav-icon">🗺️</div>
+      <div class="nav-label">מסלול טיול</div>
+      <div class="nav-desc">מיקומים בטיול לפי סדר</div>
+    </a>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+  <a href="/queries" class="nav-card" style="flex-direction:row; text-align:right; padding:18px;">
+    <div class="nav-icon">🔍</div>
+    <div>
+      <div class="nav-label">שאילתות – שלב ב'</div>
+      <div class="nav-desc">הרצת 4 שאילתות SQL מוכנות</div>
+    </div>
+  </a>
+  <a href="/subprograms" class="nav-card" style="flex-direction:row; text-align:right; padding:18px;">
+    <div class="nav-icon">⚙️</div>
+    <div>
+      <div class="nav-label">פרוצדורות ופונקציות – שלב ד'</div>
+      <div class="nav-desc">הרצת 4 Sub-Programs מוכנים</div>
+    </div>
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}ניהול מיקומים{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📍 ניהול מיקומים</h1>
+  <p>יעדי טיול, אזורים וכתובות</p>
+</div>
+
+<div class="card">
+  {% if edit %}
+    <div class="card-title"><span>✏️</span> עדכון מיקום – {{ edit.locationname }}</div>
+    <form method="POST" action="/locations/update">
+      <input type="hidden" name="locationid" value="{{ edit.locationid }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>שם המיקום</label>
+          <input type="text" name="locationname" value="{{ edit.locationname }}" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>אזור</label>
+          <select name="region">
+            {% for r_opt in ['North','South','Center','East','West','Jerusalem'] %}
+              <option value="{{ r_opt }}" {% if edit.region == r_opt %}selected{% endif %}>{{ r_opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>כתובת</label>
+          <input type="text" name="address" value="{{ edit.address }}" required maxlength="100">
+        </div>
+        <div class="form-group" style="grid-column: 1/-1;">
+          <label>תיאור</label>
+          <textarea name="description" rows="2" maxlength="255">{{ edit.description or '' }}</textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">💾 שמור שינויים</button>
+        <a href="/locations" class="btn btn-outline">ביטול</a>
+      </div>
+    </form>
+  {% else %}
+    <div class="card-title"><span>➕</span> הוספת מיקום חדש</div>
+    <form method="POST" action="/locations/add">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>שם המיקום</label>
+          <input type="text" name="locationname" placeholder="שם המיקום" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>אזור</label>
+          <select name="region">
+            {% for r_opt in ['North','South','Center','East','West','Jerusalem'] %}
+              <option value="{{ r_opt }}">{{ r_opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>כתובת</label>
+          <input type="text" name="address" placeholder="כתובת מלאה (לפחות 5 תווים)" required maxlength="100">
+        </div>
+        <div class="form-group" style="grid-column: 1/-1;">
+          <label>תיאור (אופציונלי)</label>
+          <textarea name="description" rows="2" maxlength="255" placeholder="תיאור קצר של המיקום..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">➕ הוסף מיקום</button>
+      </div>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title"><span>📋</span> רשימת מיקומים ({{ rows|length }})</div>
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>שם המיקום</th><th>אזור</th><th>כתובת</th><th>תיאור</th><th>פעולות</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.locationname }}</strong></td>
+          <td><span class="badge badge-green">{{ r.region }}</span></td>
+          <td>{{ r.address }}</td>
+          <td class="text-muted" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.description or '—' }}</td>
+          <td>
+            <a href="/locations/load/{{ r.locationid }}" class="btn btn-warning btn-sm">✏️ עדכן</a>
+            <a href="/locations/delete/{{ r.locationid }}" class="btn btn-danger btn-sm"
+               data-confirm="למחוק את {{ r.locationname }}?">🗑️ מחק</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state"><div class="empty-icon">📍</div><p>אין מיקומים במערכת</p></div>
+  {% endif %}
+</div>
+{% endblock %}

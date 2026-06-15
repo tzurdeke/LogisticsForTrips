@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}שאילתות – שלב ב'{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🔍 שאילתות – שלב ב'</h1>
+  <p>הרצת שאילתות SQL מוכנות מול בסיס הנתונים</p>
+</div>
+
+<!-- Query 1 -->
+<div class="prog-card">
+  <div class="prog-card-header">
+    <div class="prog-icon">☀️</div>
+    <div>
+      <div class="prog-title">שאילתה 1 – משתתפים בטיולי קיץ</div>
+      <div class="prog-desc">מציאת משתתפים שנרשמו לטיולים שמתחילים בקיץ (יוני–אוגוסט) בשנה נתונה</div>
+    </div>
+  </div>
+  <form method="POST" action="/queries">
+    <input type="hidden" name="query_name" value="summer_participants">
+    <div class="form-grid" style="max-width:300px;">
+      <div class="form-group">
+        <label>שנה</label>
+        <input type="number" name="year" value="2026" min="2020" max="2030">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">▶️ הרץ שאילתה</button>
+    </div>
+  </form>
+</div>
+
+<!-- Query 2 -->
+<div class="prog-card">
+  <div class="prog-card-header">
+    <div class="prog-icon">📅</div>
+    <div>
+      <div class="prog-title">שאילתה 7 – דו"ח טיולים חודשי</div>
+      <div class="prog-desc">מציג נתונים מרוכזים לפי שנה וחודש – כמות טיולים וממוצע גודל קבוצה</div>
+    </div>
+  </div>
+  <form method="POST" action="/queries">
+    <input type="hidden" name="query_name" value="monthly_report">
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">▶️ הרץ שאילתה</button>
+    </div>
+  </form>
+</div>
+
+<!-- Query 3 -->
+<div class="prog-card">
+  <div class="prog-card-header">
+    <div class="prog-icon">⚠️</div>
+    <div>
+      <div class="prog-title">שאילתה 6 – דו"ח חובות ציוד</div>
+      <div class="prog-desc">מציאת משתתפים מבוגרים שטרם החזירו ציוד מטיולים שהסתיימו</div>
+    </div>
+  </div>
+  <form method="POST" action="/queries">
+    <input type="hidden" name="query_name" value="equipment_debt">
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">▶️ הרץ שאילתה</button>
+    </div>
+  </form>
+</div>
+
+<!-- Query 4 -->
+<div class="prog-card">
+  <div class="prog-card-header">
+    <div class="prog-icon">🏆</div>
+    <div>
+      <div class="prog-title">שאילתה 8 – מיקומים פופולריים</div>
+      <div class="prog-desc">3 המיקומים הנפוצים ביותר בטיולים לפי מספר ביקורים ומשתתפים</div>
+    </div>
+  </div>
+  <form method="POST" action="/queries">
+    <input type="hidden" name="query_name" value="popular_locations">
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">▶️ הרץ שאילתה</button>
+    </div>
+  </form>
+</div>
+
+<!-- Results -->
+{% if query_name %}
+  <div class="card mt-16">
+    <div class="card-title">
+      <span>📊</span> תוצאות
+      {% if query_name == 'summer_participants' %} – משתתפים בטיולי קיץ
+      {% elif query_name == 'monthly_report' %} – דו"ח חודשי
+      {% elif query_name == 'equipment_debt' %} – חובות ציוד
+      {% elif query_name == 'popular_locations' %} – מיקומים פופולריים
+      {% endif %}
+    </div>
+
+    {% if error %}
+      <div class="result-box result-error">❌ שגיאה: {{ error }}</div>
+    {% elif results %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {% for col in results[0].keys() %}
+                <th>{{ col }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in results %}
+              <tr>
+                {% for val in row.values() %}
+                  <td>{{ val if val is not none else '—' }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="text-muted mt-16" style="font-size:0.8rem;">סה"כ {{ results|length }} תוצאות</p>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>לא נמצאו תוצאות לשאילתה זו</p>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

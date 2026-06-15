@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}ניהול הסעות{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🚌 ניהול הסעות</h1>
+  <p>רכבים, קיבולת וספקי הסעה</p>
+</div>
+
+<div class="card">
+  {% if edit %}
+    <div class="card-title"><span>✏️</span> עדכון הסעה</div>
+    <form method="POST" action="/transportation/update">
+      <input type="hidden" name="transportid" value="{{ edit.transportid }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>סוג רכב</label>
+          <select name="vehicle_type">
+            {% for t in ['Bus','Minibus','Van','Car','Coach'] %}
+              <option value="{{ t }}" {% if edit.vehicle_type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>קיבולת (מושבים)</label>
+          <input type="number" name="capacity" value="{{ edit.capacity }}" min="1" required>
+        </div>
+        <div class="form-group">
+          <label>ספק</label>
+          <select name="supplierid" required>
+            {% for s in suppliers %}
+              <option value="{{ s.supplierid }}" {% if edit.supplierid == s.supplierid %}selected{% endif %}>{{ s.company_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">💾 שמור שינויים</button>
+        <a href="/transportation" class="btn btn-outline">ביטול</a>
+      </div>
+    </form>
+  {% else %}
+    <div class="card-title"><span>➕</span> הוספת רכב הסעה חדש</div>
+    <form method="POST" action="/transportation/add">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>סוג רכב</label>
+          <select name="vehicle_type">
+            {% for t in ['Bus','Minibus','Van','Car','Coach'] %}
+              <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>קיבולת (מושבים)</label>
+          <input type="number" name="capacity" value="20" min="1" required>
+        </div>
+        <div class="form-group">
+          <label>ספק</label>
+          <select name="supplierid" required>
+            <option value="">-- בחר ספק --</option>
+            {% for s in suppliers %}
+              <option value="{{ s.supplierid }}">{{ s.company_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">➕ הוסף הסעה</button>
+      </div>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title"><span>📋</span> רשימת הסעות ({{ rows|length }})</div>
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>סוג רכב</th><th>קיבולת</th><th>ספק</th><th>פעולות</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.vehicle_type }}</strong></td>
+          <td><span class="badge badge-cyan">{{ r.capacity }} מושבים</span></td>
+          <td>{{ r.supplier_name }}</td>
+          <td>
+            <a href="/transportation/load/{{ r.transportid }}" class="btn btn-warning btn-sm">✏️ עדכן</a>
+            <a href="/transportation/delete/{{ r.transportid }}" class="btn btn-danger btn-sm"
+               data-confirm="למחוק הסעה זו?">🗑️ מחק</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state"><div class="empty-icon">🚌</div><p>אין הסעות במערכת</p></div>
+  {% endif %}
+</div>
+{% endblock %}

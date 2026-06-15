@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}ניהול טיולים{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>✈️ ניהול טיולים</h1>
+  <p>הוספה, עדכון, מחיקה וצפייה בכל הטיולים במערכת</p>
+</div>
+
+<!-- FORM -->
+<div class="card">
+  {% if edit %}
+    <div class="card-title"><span>✏️</span> עדכון טיול</div>
+    <form method="POST" action="/trips/update">
+      <input type="hidden" name="tripid" value="{{ edit.tripid }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>שם הטיול</label>
+          <input type="text" name="tripname" value="{{ edit.tripname }}" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>תאריך התחלה</label>
+          <input type="date" name="startdate" value="{{ edit.startdate }}" required>
+        </div>
+        <div class="form-group">
+          <label>תאריך סיום</label>
+          <input type="date" name="enddate" value="{{ edit.enddate }}" required>
+        </div>
+        <div class="form-group">
+          <label>גודל קבוצה</label>
+          <input type="number" name="groupsize" value="{{ edit.groupsize }}" min="1" required>
+        </div>
+        <div class="form-group">
+          <label>סוג טיול</label>
+          <select name="trip_type">
+            {% for t in ['Adventure','Extreme','Educational','Cultural','Nature','Family'] %}
+              <option value="{{ t }}" {% if edit.trip_type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>מדריך (אופציונלי)</label>
+          <select name="guideid">
+            <option value="">-- ללא מדריך --</option>
+            {% for g in guides %}
+              <option value="{{ g.guideid }}" {% if edit.get('guideid') == g.guideid %}selected{% endif %}>{{ g.guidename }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">💾 שמור שינויים</button>
+        <a href="/trips" class="btn btn-outline">ביטול</a>
+      </div>
+    </form>
+  {% else %}
+    <div class="card-title"><span>➕</span> הוספת טיול חדש</div>
+    <form method="POST" action="/trips/add">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>שם הטיול</label>
+          <input type="text" name="tripname" placeholder="שם הטיול" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>תאריך התחלה</label>
+          <input type="date" name="startdate" required>
+        </div>
+        <div class="form-group">
+          <label>תאריך סיום</label>
+          <input type="date" name="enddate" required>
+        </div>
+        <div class="form-group">
+          <label>גודל קבוצה</label>
+          <input type="number" name="groupsize" value="10" min="1" required>
+        </div>
+        <div class="form-group">
+          <label>סוג טיול</label>
+          <select name="trip_type">
+            {% for t in ['Adventure','Extreme','Educational','Cultural','Nature','Family'] %}
+              <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>מדריך (אופציונלי)</label>
+          <select name="guideid">
+            <option value="">-- ללא מדריך --</option>
+            {% for g in guides %}
+              <option value="{{ g.guideid }}">{{ g.guidename }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">➕ הוסף טיול</button>
+      </div>
+    </form>
+  {% endif %}
+</div>
+
+<!-- TABLE -->
+<div class="card">
+  <div class="card-title"><span>📋</span> רשימת טיולים ({{ rows|length }})</div>
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>שם הטיול</th>
+          <th>תאריך התחלה</th>
+          <th>תאריך סיום</th>
+          <th>גודל קבוצה</th>
+          <th>סוג</th>
+          <th>מדריך</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.tripname }}</strong></td>
+          <td>{{ r.startdate }}</td>
+          <td>{{ r.enddate }}</td>
+          <td><span class="badge badge-cyan">{{ r.groupsize }}</span></td>
+          <td><span class="badge badge-blue">{{ r.trip_type }}</span></td>
+          <td>{{ r.guide_name or '—' }}</td>
+          <td>
+            <a href="/trips/load/{{ r.tripid }}" class="btn btn-warning btn-sm">✏️ עדכן</a>
+            <a href="/trips/delete/{{ r.tripid }}" class="btn btn-danger btn-sm"
+               data-confirm="למחוק את הטיול '{{ r.tripname }}'?">🗑️ מחק</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">✈️</div>
+      <p>אין טיולים במערכת עדיין</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

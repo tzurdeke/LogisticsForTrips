@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}ניהול ציוד{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🎒 ניהול ציוד</h1>
+  <p>מלאי ציוד, ספקים ומעקב אחר הקצאות</p>
+</div>
+
+<div class="card">
+  {% if edit %}
+    <div class="card-title"><span>✏️</span> עדכון ציוד – {{ edit.itemname }}</div>
+    <form method="POST" action="/equipment/update">
+      <input type="hidden" name="equipmentid" value="{{ edit.equipmentid }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>שם פריט</label>
+          <input type="text" name="itemname" value="{{ edit.itemname }}" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>כמות במלאי</label>
+          <input type="number" name="totalinstock" value="{{ edit.totalinstock }}" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>ספק</label>
+          <select name="supplierid" required>
+            {% for s in suppliers %}
+              <option value="{{ s.supplierid }}" {% if edit.supplierid == s.supplierid %}selected{% endif %}>{{ s.company_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">💾 שמור שינויים</button>
+        <a href="/equipment" class="btn btn-outline">ביטול</a>
+      </div>
+    </form>
+  {% else %}
+    <div class="card-title"><span>➕</span> הוספת פריט ציוד חדש</div>
+    <form method="POST" action="/equipment/add">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>שם פריט</label>
+          <input type="text" name="itemname" placeholder="שם הפריט" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>כמות במלאי</label>
+          <input type="number" name="totalinstock" value="1" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>ספק</label>
+          <select name="supplierid" required>
+            <option value="">-- בחר ספק --</option>
+            {% for s in suppliers %}
+              <option value="{{ s.supplierid }}">{{ s.company_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">➕ הוסף ציוד</button>
+      </div>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title"><span>📋</span> רשימת ציוד ({{ rows|length }})</div>
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>שם פריט</th><th>כמות במלאי</th><th>ספק</th><th>פעולות</th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.itemname }}</strong></td>
+          <td>
+            <span class="badge {% if r.totalinstock > 20 %}badge-green{% elif r.totalinstock > 5 %}badge-yellow{% else %}badge-red{% endif %}">
+              {{ r.totalinstock }}
+            </span>
+          </td>
+          <td>{{ r.supplier_name }}</td>
+          <td>
+            <a href="/equipment/load/{{ r.equipmentid }}" class="btn btn-warning btn-sm">✏️ עדכן</a>
+            <a href="/equipment/delete/{{ r.equipmentid }}" class="btn btn-danger btn-sm"
+               data-confirm="למחוק את {{ r.itemname }}?">🗑️ מחק</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state"><div class="empty-icon">🎒</div><p>אין ציוד במערכת</p></div>
+  {% endif %}
+</div>
+{% endblock %}

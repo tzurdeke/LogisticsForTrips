@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}ניהול משתתפים{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>👥 ניהול משתתפים</h1>
+  <p>הוספה, עדכון, מחיקה וצפייה בכל המשתתפים במערכת</p>
+</div>
+
+<div class="card">
+  {% if edit %}
+    <div class="card-title"><span>✏️</span> עדכון משתתף – {{ edit.firstname }} {{ edit.lastname }}</div>
+    <form method="POST" action="/participants/update">
+      <input type="hidden" name="participantid" value="{{ edit.participantid }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>שם פרטי</label>
+          <input type="text" name="firstname" value="{{ edit.firstname }}" required maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>שם משפחה</label>
+          <input type="text" name="lastname" value="{{ edit.lastname }}" required maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>טלפון</label>
+          <input type="text" name="phone" value="{{ edit.phone }}" required maxlength="15">
+        </div>
+        <div class="form-group">
+          <label>אימייל</label>
+          <input type="email" name="email" value="{{ edit.email }}" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>תאריך לידה</label>
+          <input type="date" name="birthday" value="{{ edit.birthday }}" required>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">💾 שמור שינויים</button>
+        <a href="/participants" class="btn btn-outline">ביטול</a>
+      </div>
+    </form>
+  {% else %}
+    <div class="card-title"><span>➕</span> הוספת משתתף חדש</div>
+    <form method="POST" action="/participants/add">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>שם פרטי</label>
+          <input type="text" name="firstname" placeholder="שם פרטי" required maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>שם משפחה</label>
+          <input type="text" name="lastname" placeholder="שם משפחה" required maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>טלפון</label>
+          <input type="text" name="phone" placeholder="050-0000000" required maxlength="15">
+        </div>
+        <div class="form-group">
+          <label>אימייל</label>
+          <input type="email" name="email" placeholder="email@example.com" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label>תאריך לידה</label>
+          <input type="date" name="birthday" required>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">➕ הוסף משתתף</button>
+      </div>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-title"><span>📋</span> רשימת משתתפים ({{ rows|length }})</div>
+  {% if rows %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>שם מלא</th>
+          <th>טלפון</th>
+          <th>אימייל</th>
+          <th>תאריך לידה</th>
+          <th>גיל</th>
+          <th>פעולות</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.firstname }} {{ r.lastname }}</strong></td>
+          <td>{{ r.phone }}</td>
+          <td>{{ r.email }}</td>
+          <td>{{ r.birthday }}</td>
+          <td><span class="badge badge-cyan">{{ r.age }}</span></td>
+          <td>
+            <a href="/participants/load/{{ r.participantid }}" class="btn btn-warning btn-sm">✏️ עדכן</a>
+            <a href="/participants/delete/{{ r.participantid }}" class="btn btn-danger btn-sm"
+               data-confirm="למחוק את {{ r.firstname }} {{ r.lastname }}?">🗑️ מחק</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state"><div class="empty-icon">👥</div><p>אין משתתפים במערכת</p></div>
+  {% endif %}
+</div>
+{% endblock %}
