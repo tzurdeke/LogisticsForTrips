@@ -1,8 +1,7 @@
 # app.py – Flask Web Application
 # מערכת ניהול לוגיסטיקה לטיולים – שלב ה'
 
-# pyrefly: ignore [missing-import]
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import db
 
 app = Flask(__name__)
@@ -10,10 +9,18 @@ app.secret_key = "logistics_trips_secret_2026"
 
 
 # ──────────────────────────────────────────────────────
-#  DASHBOARD
+#  ENTRANCE PAGE
 # ──────────────────────────────────────────────────────
 @app.route("/")
 def index():
+    return render_template("login.html")
+
+
+# ──────────────────────────────────────────────────────
+#  DASHBOARD
+# ──────────────────────────────────────────────────────
+@app.route("/dashboard")
+def dashboard():
     try:
         stats = db.get_dashboard_stats()
     except Exception as e:

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>כניסה למערכת | TripLogix</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-overlay"></div>
+  
+  <div class="login-card" style="text-align: center;">
+    <div class="login-header">
+      <div class="login-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <h1>TripLogix</h1>
+      <p>מערכת ניהול לוגיסטיקה לטיולים</p>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" style="font-size: 13px; padding: 10px; margin-bottom: 16px; justify-content: center;">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div style="margin-top: 24px;">
+      <a href="/dashboard" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 18px; font-weight: bold; border-radius: 12px; display: block; box-sizing: border-box; text-decoration: none;">🔑 כניסה למערכת</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

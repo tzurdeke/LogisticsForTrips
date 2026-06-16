@@ -1792,109 +1792,98 @@ END $$;
 
 ### תמונות מסך של הפעלת האפליקציה
 
-#### 🏠 מסך הבית וניהול נתונים (CRUD)
-
 <p align="center">
   <img src="https://github.com/user-attachments/assets/0a87ac60-91ce-408a-b07a-d92f78f0d339" width="700">
-  <br>
-  <i>מסך הבית (Dashboard) המציג סטטיסטיקות כלליות מתוך בסיס הנתונים</i>
 </p>
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/2c5cd928-52c8-4b51-bb75-c4d9e331e7a9" width="700">
-  <br>
-  <i>ממשק ניהול נתונים - הצגת הרשומות בטבלה לצד טופס להוספת רשומה חדשה</i>
 </p>
 
 ---
 
-#### ✏️ עדכון נתונים במערכת
+#### עדכון:
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/c762c731-4c9e-425c-a7f7-61d744fd7ff6" width="700">
-  <br>
-  <i>בחירת רשומה לעריכה וטעינת הנתונים הקיימים לתוך הטופס העליון</i>
 </p>
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/b1ca146c-3f24-41cf-afd7-7b436dee0767" width="700">
-  <br>
-  <i>עדכון השדות ושמירת השינויים מול שרת ה-Flask</i>
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/cc51deb6-f2bb-4ae1-b0bc-f686a908e1e2" width="500">
-  <br>
-  <i>הודעת הצלחה ירוקה (Flash Message) המאשרת כי העדכון בוצע בהצלחה</i>
+  <img src="https://github.com/user-attachments/assets/cc51deb6-f2bb-4ae1-b0bc-f686a908e1e2" width="700">
 </p>
 
 ---
 
-#### 🗑️ מחיקת נתונים במערכת
+#### מחיקה:
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/47d92bcd-8c00-4e3f-9569-f4976c095181" width="700">
-  <br>
-  <i>הקפצת חלון אישור (Confirm Modal) לפני ביצוע מחיקה</i>
 </p>
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/a759b86d-16b8-46d8-b52a-cd94321e70fa" width="700">
-  <br>
-  <i>אישור המחיקה והצגת הודעת הצלחה זמנית</i>
 </p>
 
 ---
 
-#### 🔍 הרצת שאילתות (שלב ב')
+#### שאילתות:
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/b3f01bc1-566b-4aec-8a3b-d109ec911b51" width="700">
-  <br>
-  <i>מסך השאילתות הראשי המאפשר בחירת שאילתה להרצה</i>
 </p>
 
-##### 🔹 שאילתה 1: מציאת משתתפים שנרשמו לטיולי קיץ 2026
+##### שאילצה ראשונה:
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/8e0af548-12cd-411b-9ea9-74dbf1cf0edc" width="700">
 </p>
 
-##### 🔹 שאילתה 2: רשימת כמות ציוד שהוקצתה לטיולים
+##### שאילתה שניה:
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/65cdb8cc-5510-44f8-a252-8558caafd4a9" width="700">
 </p>
 
-##### 🔹 שאילתה 3: מציאת ספקים משולבים (הסעות וציוד)
+##### שאילתה שלישית:
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/f88a93a5-5dad-4779-a47c-05252c9479b9" width="700">
 </p>
 
-##### 🔹 שאילתה 4: הטיול העמוס ביותר במשתתפים
+##### שאילתה רביעית:
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/37132798-88f6-438d-802a-3770c6465db5" width="700">
 </p>
 
 ---
 
-#### ⚙️ הרצת תתי-תוכניות (שלב ד')
+#### פונקציות:
 
-##### 🔹 פונקציה 1: בדיקת קיבולת הסעות לטיול (`check_trip_transport_capacity`)
+##### פונקציה 1:
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/bd11b05e-27e8-4de8-b9b1-c53f01568487" width="700">
 </p>
 
-##### 🔹 פונקציה 2: הפקת דו"ח ציוד זמין מספק (`get_available_equipment_report`)
+##### פונקציה 2:
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/fa0c23a8-d85f-4b25-965b-f52ddfbd6378" width="700">
 </p>
 
-##### 🔹 פרוצדורה 1: הקצאת ציוד לטיול (`allocate_equipment_to_trip`)
+---
+
+##### פרוצדורה 1:
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/392fbcdb-e3c3-45dc-a73f-be8fd31cca89" width="700">
 </p>
 
-##### 🔹 פרוצדורה 2: רישום משתתף לטיול באופן מאובטח (`register_participant_for_trip_secure`)
-<p align="center">
-  <!-- כאן ניתן להעלות את תמונת הרצת פרוצדורה 2 -->
-  <i>פרוצדורה זו מופעלת באופן מאובטח ומבצעת את בדיקות התקינות מול ה-DB</i>
-</p>
+##### פרוצדורה 2:
+
+![Uploading image.png…]()
