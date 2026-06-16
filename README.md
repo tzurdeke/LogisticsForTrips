@@ -1791,6 +1791,9 @@ END $$;
 ---
 
 ### תמונות מסך של הפעלת האפליקציה
+<img width="1915" height="906" alt="image" src="https://github.com/user-attachments/assets/809f56d1-5125-495a-a7a8-d5cf0d89d0c8" />
+
+### הכנסה
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/0a87ac60-91ce-408a-b07a-d92f78f0d339" width="700">
