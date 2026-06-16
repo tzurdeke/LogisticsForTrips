@@ -1,6 +1,7 @@
 # app.py – Flask Web Application
 # מערכת ניהול לוגיסטיקה לטיולים – שלב ה'
 
+# pyrefly: ignore [missing-import]
 from flask import Flask, render_template, request, redirect, url_for, flash
 import db
 
